@@ -1,0 +1,10 @@
+{
+  "Profiles": [
+    {
+      "Name": "nuget3",
+      "WorkingDirectory": "C:\\dev\\git\\ProjectK\\HelloWorld",
+      "BrowserOption": "None",
+      "EnvironmentVariables": {}
+    }
+  ]
+}

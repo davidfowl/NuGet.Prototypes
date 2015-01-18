@@ -1,0 +1,17 @@
+﻿{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "Newtonsoft.Json": "6.0.6",
+        "NuGet.Packaging.Extensions": "1.0.0-*"
+    },
+
+    "frameworks": {
+        "aspnet50": {
+            "dependencies": {
+            },
+            "frameworkAssemblies": {
+                "System.Runtime": "4.0.20.0"
+            }
+        }
+    }
+}

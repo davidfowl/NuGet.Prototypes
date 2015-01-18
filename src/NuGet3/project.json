@@ -1,0 +1,26 @@
+﻿{
+    "version": "1.0.0-*",
+    "compilationOptions": { "warningsAsErrors": true },
+    "dependencies": {
+        "DotNet.Project.Core": "1.0.0-*",
+        "NuGet.Configuration": "1.0.0-master-50130044",
+        "NuGet.Packaging.Extensions": "1.0.0-*",
+        "NuGet.Client": "1.0.0-*",
+        "NuGet.Common": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.CommandLineUtils": { "version": "1.0.0-*", "type": "build" }
+    },
+    "commands": {
+        "nuget3": "run restore"
+    },
+    "frameworks": {
+        "aspnet50": {
+            "frameworkAssemblies": {
+                "System.Runtime": "4.0.20.0",
+                "System.IO.Compression": "4.0.0.0",
+                "System.Net.Http": "4.0.0.0",
+                "System.Xml": "4.0.0.0",
+                "System.Xml.Linq": "4.0.0.0"
+            }
+        }
+    }
+}
