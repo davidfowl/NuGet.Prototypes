@@ -16,16 +16,16 @@ namespace NuGet.Client
         private bool _ignored;
         private readonly bool _ignoreFailure;
         private readonly NuGetv3LocalRepository _repository;
-        private readonly IReport _reports;
+        private readonly ILogger _logger;
 
         public string Source { get; }
 
         public NuGetv3PackageFolder(
             string physicalPath,
             bool ignoreFailure,
-            IReport report)
+            ILogger logger)
         {
-            _reports = report;
+            _logger = logger;
             // We need to help "kpm restore" to ensure case-sensitivity here
             // Turn on the flag to get package ids in accurate casing
             _repository = new NuGetv3LocalRepository(physicalPath, checkPackageIdCase: true);
@@ -58,27 +58,27 @@ namespace NuGet.Client
 
             if (_ignoreFailure)
             {
-                _reports.WriteInformation(string.Format("Warning: FindPackagesById: {1}\r\n  {0}",
+                _logger.WriteInformation(string.Format("Warning: FindPackagesById: {1}\r\n  {0}",
                     exception.Message, id.Yellow().Bold()));
 
                 _ignored = true;
                 return Task.FromResult(Enumerable.Empty<PackageInfo>());
             }
 
-            _reports.WriteError(string.Format("Error: FindPackagesById: {1}\r\n  {0}",
+            _logger.WriteError(string.Format("Error: FindPackagesById: {1}\r\n  {0}",
                 exception.Message, id.Red().Bold()));
             throw exception;
         }
 
         public Task<Stream> OpenNuspecStreamAsync(PackageInfo package)
         {
-            _reports.WriteQuiet(string.Format("  OPEN {0}", package.ManifestContentUri));
+            _logger.WriteQuiet(string.Format("  OPEN {0}", package.ManifestContentUri));
             return Task.FromResult<Stream>(File.OpenRead(package.ManifestContentUri));
         }
 
         public Task<Stream> OpenNupkgStreamAsync(PackageInfo package)
         {
-            _reports.WriteQuiet(string.Format("  OPEN {0}", package.ContentUri));
+            _logger.WriteQuiet(string.Format("  OPEN {0}", package.ContentUri));
 
             return Task.FromResult<Stream>(File.OpenRead(package.ContentUri));
         }

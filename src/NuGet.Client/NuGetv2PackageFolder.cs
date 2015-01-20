@@ -11,14 +11,14 @@ namespace NuGet.Client
     public class NuGetv2PackageFolder : IPackageFeed
     {
         private readonly NuGetv2LocalRepository _repository;
-        private readonly IReport _report;
+        private readonly ILogger _logger;
 
         public string Source { get; }
 
-        public NuGetv2PackageFolder(string physicalPath, IReport report)
+        public NuGetv2PackageFolder(string physicalPath, ILogger logger)
         {
             _repository = new NuGetv2LocalRepository(physicalPath);
-            _report = report;
+            _logger = logger;
 
             Source = physicalPath;
         }
@@ -37,7 +37,7 @@ namespace NuGet.Client
 
         public async Task<Stream> OpenNuspecStreamAsync(PackageInfo package)
         {
-            return await PackageUtilities.OpenNuspecStreamFromNupkgAsync(package, OpenNupkgStreamAsync, _report);
+            return await PackageUtilities.OpenNuspecStreamFromNupkgAsync(package, OpenNupkgStreamAsync, _logger);
         }
 
         public Task<Stream> OpenNupkgStreamAsync(PackageInfo package)

@@ -40,7 +40,7 @@ namespace NuGet3
         // public IApplicationEnvironment ApplicationEnvironment { get; private set; }
 
         public IMachineWideSettings MachineWideSettings { get; set; }
-        public Reports Reports { get; set; }
+        public AnsiConsoleLogger Logger { get; set; }
 
         protected internal ISettings Settings { get; set; }
         protected internal IPackageSourceProvider SourceProvider { get; set; }
@@ -92,18 +92,18 @@ namespace NuGet3
 
                 if (restoreCount > 1)
                 {
-                    Reports.WriteInformation(string.Format("Total time {0}ms", sw.ElapsedMilliseconds));
+                    Logger.WriteInformation(string.Format("Total time {0}ms", sw.ElapsedMilliseconds));
                 }
 
                 return restoreCount == successCount;
             }
             catch (Exception ex)
             {
-                Reports.WriteInformation("----------");
-                Reports.WriteInformation(ex.ToString());
-                Reports.WriteInformation("----------");
-                Reports.WriteInformation("Restore failed");
-                Reports.WriteInformation(ex.Message);
+                Logger.WriteInformation("----------");
+                Logger.WriteInformation(ex.ToString());
+                Logger.WriteInformation("----------");
+                Logger.WriteInformation("Restore failed");
+                Logger.WriteInformation(ex.Message);
                 return false;
             }
         }
@@ -125,7 +125,7 @@ namespace NuGet3
         {
             var success = true;
 
-            Reports.WriteInformation(string.Format("Restoring packages for {0}", projectJsonPath.Bold()));
+            Logger.WriteInformation(string.Format("Restoring packages for {0}", projectJsonPath.Bold()));
 
             var sw = new Stopwatch();
             sw.Start();
@@ -188,16 +188,16 @@ namespace NuGet3
 
             var graphs = await Task.WhenAll(tasks);
 
-            Reports.WriteInformation(string.Format("{0}, {1}ms elapsed", "Resolving complete".Green(), sw.ElapsedMilliseconds));
+            Logger.WriteInformation(string.Format("{0}, {1}ms elapsed", "Resolving complete".Green(), sw.ElapsedMilliseconds));
 
             var installItems = new List<GraphItem<RemoteResolveResult>>();
             var missingItems = new HashSet<LibraryRange>();
 
             foreach (var g in graphs)
             {
-                g.Dump(s => Reports.WriteInformation(s));
+                g.Dump(s => Logger.WriteInformation(s));
                 g.TryResolveConflicts();
-                g.Dump(s => Reports.WriteInformation(s));
+                g.Dump(s => Logger.WriteInformation(s));
             }
 
             //foreach (var g in graphs)
@@ -260,7 +260,7 @@ namespace NuGet3
             //    return false;
             //}
 
-            Reports.WriteInformation(string.Format("{0}, {1}ms elapsed", "Restore complete".Green().Bold(), sw.ElapsedMilliseconds));
+            Logger.WriteInformation(string.Format("{0}, {1}ms elapsed", "Restore complete".Green().Bold(), sw.ElapsedMilliseconds));
 
             //for (int i = 0; i < contexts.Count; i++)
             //{
@@ -390,7 +390,7 @@ namespace NuGet3
                         continue;
                     }
 
-                    Reports.WriteInformation(string.Format("Installing {0} {1}", library.Name.Bold(), library.Version));
+                    Logger.WriteInformation(string.Format("Installing {0} {1}", library.Name.Bold(), library.Version));
                     memStream.Seek(0, SeekOrigin.Begin);
                     await NuGetPackageUtils.InstallFromStream(memStream, library, packagesDirectory, sha512);
                 }
@@ -401,7 +401,7 @@ namespace NuGet3
         {
             foreach (var source in effectiveSources)
             {
-                var feed = PackageSourceUtils.CreatePackageFeed(source, NoCache, IgnoreFailedSources, Reports);
+                var feed = PackageSourceUtils.CreatePackageFeed(source, NoCache, IgnoreFailedSources, Logger);
                 if (feed != null)
                 {
                     remoteProviders.Add(new RemoteDependencyProvider(feed));

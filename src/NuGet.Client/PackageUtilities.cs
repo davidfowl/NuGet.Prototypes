@@ -27,7 +27,7 @@ namespace NuGet
 
         internal static async Task<Stream> OpenNuspecStreamFromNupkgAsync(PackageInfo package,
             Func<PackageInfo, Task<Stream>> openNupkgStreamAsync,
-            IReport report)
+            ILogger report)
         {
             using (var nupkgStream = await openNupkgStreamAsync(package))
             {

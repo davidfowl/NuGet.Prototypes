@@ -45,7 +45,7 @@ namespace NuGet3
                 c.OnExecute(async () =>
                 {
                     var command = new RestoreCommand();
-                    command.Reports = new Reports(optionVerbose.HasValue(), optQuiet.HasValue());
+                    command.Logger = new AnsiConsoleLogger(optionVerbose.HasValue(), optQuiet.HasValue());
 
                     command.RestoreDirectory = argRoot.Value;
                     command.Sources = optSource.Values;

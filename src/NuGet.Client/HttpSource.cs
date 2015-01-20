@@ -22,7 +22,7 @@ namespace NuGet.Client
         private string _baseUri;
         private string _userName;
         private string _password;
-        private IReport _reports;
+        private ILogger _logger;
 #if ASPNETCORE50
         private string _proxyUserName;
         private string _proxyPassword;
@@ -32,12 +32,12 @@ namespace NuGet.Client
             string baseUri,
             string userName,
             string password,
-            IReport reports)
+            ILogger logger)
         {
             _baseUri = baseUri + (baseUri.EndsWith("/") ? "" : "/");
             _userName = userName;
             _password = password;
-            _reports = reports;
+            _logger = logger;
 
             var proxy = Environment.GetEnvironmentVariable("http_proxy");
             if (string.IsNullOrEmpty(proxy))
@@ -96,11 +96,11 @@ namespace NuGet.Client
             var result = await TryCache(uri, cacheKey, cacheAgeLimit);
             if (result.Stream != null)
             {
-                _reports.WriteInformation(string.Format("  {0} {1}", "CACHE".Green(), uri));
+                _logger.WriteInformation(string.Format("  {0} {1}", "CACHE".Green(), uri));
                 return result;
             }
 
-            _reports.WriteQuiet(string.Format("  {0} {1}.", "GET".Yellow(), uri));
+            _logger.WriteQuiet(string.Format("  {0} {1}.", "GET".Yellow(), uri));
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             if (_userName != null)
@@ -177,7 +177,7 @@ namespace NuGet.Client
                 return 0;
             });
 
-            _reports.WriteQuiet(string.Format("  {1} {0} {2}ms", uri, response.StatusCode.ToString().Green(), sw.ElapsedMilliseconds.ToString().Bold()));
+            _logger.WriteQuiet(string.Format("  {1} {0} {2}ms", uri, response.StatusCode.ToString().Green(), sw.ElapsedMilliseconds.ToString().Bold()));
 
             return result;
         }

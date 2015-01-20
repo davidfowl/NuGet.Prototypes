@@ -7,14 +7,14 @@ using NuGet.Client;
 
 namespace NuGet3
 {
-    public class Reports : IReport
+    public class AnsiConsoleLogger : ILogger
     {
         private readonly AnsiConsole _console;
         private readonly bool _verbose;
         private readonly bool _quiet;
         private readonly object _lockObj = new object();
 
-        public Reports(bool verbose, bool quiet)
+        public AnsiConsoleLogger(bool verbose, bool quiet)
         {
             _console = AnsiConsole.Output;
             _verbose = verbose;

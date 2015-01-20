@@ -25,23 +25,9 @@ namespace NuGet3
             return enabledSources.Concat(addedSources).Distinct().ToList();
         }
 
-        public static IPackageFeed CreatePackageFeed(PackageSource source, bool noCache, bool ignoreFailedSources,
-            Reports reports)
+        public static IPackageFeed CreatePackageFeed(PackageSource source, bool noCache, bool ignoreFailedSources, ILogger logger)
         {
-            if (new Uri(source.Source).IsFile)
-            {
-                return PackageFolderFactory.CreatePackageFolderFromPath(source.Source, ignoreFailedSources, reports);
-            }
-            else
-            {
-                return new NuGetv2Feed(
-                    source.Source,
-                    source.UserName,
-                    source.Password,
-                    noCache,
-                    ignoreFailedSources,
-                    reports);
-            }
+            return PackageFeedFactory.CreateFeed(source.Source, source.UserName, source.Password, noCache, ignoreFailedSources, logger);
         }
 
         private static bool CorrectName(string value, PackageSource source)

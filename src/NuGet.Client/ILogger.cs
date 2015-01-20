@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace NuGet.Client
 {
-    public interface IReport
+    public interface ILogger
     {
         void WriteVerbose(string message);
         void WriteInformation(string message);

@@ -36,7 +36,7 @@ namespace NuGet.Client
 
         public string Source { get; }
 
-        private readonly IReport _reports;
+        private readonly ILogger _reports;
 
         public NuGetv2Feed(
             string baseUri,
@@ -44,7 +44,7 @@ namespace NuGet.Client
             string password,
             bool noCache,
             bool ignoreFailure,
-            IReport report)
+            ILogger report)
         {
             _reports = report;
             _baseUri = baseUri.EndsWith("/") ? baseUri : (baseUri + "/");
