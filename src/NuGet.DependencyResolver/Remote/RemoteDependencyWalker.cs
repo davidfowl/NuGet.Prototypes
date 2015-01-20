@@ -71,9 +71,6 @@ namespace NuGet.Resolver
 
         private async Task<GraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange, Func<string, bool> predicate)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             var node = new GraphNode
             {
                 LibraryRange = libraryRange,
@@ -112,6 +109,7 @@ namespace NuGet.Resolver
                     node.Dependencies.Add(dependency);
                 }
             }
+
             return node;
         }
 
