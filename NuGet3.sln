@@ -22,6 +22,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Client", "src\NuGet.C
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Common", "src\NuGet.Common\NuGet.Common.kproj", "{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Resolver", "src\NuGet.Resolver\NuGet.Resolver.kproj", "{D08F3B26-98F0-4379-9EF6-2ADA312249DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D08F3B26-98F0-4379-9EF6-2ADA312249DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D08F3B26-98F0-4379-9EF6-2ADA312249DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D08F3B26-98F0-4379-9EF6-2ADA312249DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D08F3B26-98F0-4379-9EF6-2ADA312249DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,5 +69,6 @@ Global
 		{24DE9E2C-4ADC-48E6-ADF0-1E2B00596ECD} = {CE128646-AF7A-4881-A481-87077991FAAB}
 		{BA3543A8-874C-4F42-8757-C7EF7D17C8EE} = {CE128646-AF7A-4881-A481-87077991FAAB}
 		{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D} = {CE128646-AF7A-4881-A481-87077991FAAB}
+		{D08F3B26-98F0-4379-9EF6-2ADA312249DA} = {CE128646-AF7A-4881-A481-87077991FAAB}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,13 @@
+﻿{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "NuGet.Packaging.Extensions": "1.0.0-*"
+    },
+
+    "frameworks" : {
+        "aspnet50" : { 
+            "dependencies": {
+            }
+        }
+    }
+}
