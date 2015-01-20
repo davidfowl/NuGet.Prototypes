@@ -90,9 +90,8 @@ namespace NuGet.DependencyResolver
                 root.ForEach(node => incomplete |= node.Disposition == Disposition.Acceptable);
             }
 
-            return incomplete;
+            return !incomplete;
         }
-        
 
         public static void ForEach<TItem, TState>(this GraphNode<TItem> root, TState state, Func<GraphNode<TItem>, TState, TState> visitor)
         {

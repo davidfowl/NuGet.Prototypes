@@ -134,6 +134,7 @@ namespace NuGet.DependencyResolver
 
             item = new GraphItem<ResolveResult>()
             {
+                Key = libraryDescripton.Identity,
                 Data = new ResolveResult
                 {
                     LibraryDescription = libraryDescripton,

@@ -133,6 +133,7 @@ namespace NuGet.DependencyResolver
 
             return new GraphItem<RemoteResolveResult>
             {
+                Key = match.Library,
                 Data = new RemoteResolveResult
                 {
                     Match = match,

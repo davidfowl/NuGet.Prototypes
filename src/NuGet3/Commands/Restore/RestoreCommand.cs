@@ -193,6 +193,11 @@ namespace NuGet3
             var installItems = new List<GraphItem<RemoteResolveResult>>();
             var missingItems = new HashSet<LibraryRange>();
 
+            foreach (var g in graphs)
+            {
+                g.TryResolveConflicts();
+            }
+
             // TODO: Do stuff here
             //foreach (var item in graphs)
             //{
