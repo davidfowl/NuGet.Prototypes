@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
 
-namespace NuGet3
+namespace NuGet.Resolver
 {
-    public class RestoreContext
+    public class RemoteWalkContext
     {
-        public RestoreContext()
+        public RemoteWalkContext()
         {
             FindLibraryCache = new Dictionary<LibraryRange, Task<GraphItem>>();
         }

@@ -6,28 +6,70 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Client;
-using NuGet.Common;
+using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
+using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 
-namespace NuGet3
+namespace NuGet.Resolver
 {
-    public class RestoreOperations
+    public class RemoteDependencyWalker
     {
-        private readonly IReport _report;
-
-        public RestoreOperations(IReport report)
+        public async Task<RemoteResolveResults> Walk(RemoteWalkContext context, string name, NuGetVersion version)
         {
-            _report = report;
+            var root = await CreateGraphNode(context, new LibraryRange
+            {
+                Name = name,
+                VersionRange = new NuGetVersionRange(version)
+            });
+
+            var results = new RemoteResolveResults();
+
+            ForEach(new[] { root }, node =>
+             {
+                 if (node == null || node.LibraryRange == null)
+                 {
+                     return;
+                 }
+
+                 if (node.LibraryRange.IsGacOrFrameworkReference)
+                 {
+                     return;
+                 }
+
+                 if (node.Item == null || node.Item.Match == null)
+                 {
+                     results.MissingItems.Add(node.LibraryRange);
+                     return;
+                 }
+
+                 var isRemote = context.RemoteLibraryProviders.Contains(node.Item.Match.Provider);
+                 var isAdded = results.InstallItems.Any(item => item.Match.Library == node.Item.Match.Library);
+
+                 if (!isAdded && isRemote)
+                 {
+                     results.InstallItems.Add(node.Item);
+                 }
+             });
+
+            return results;
         }
 
-        public Task<GraphNode> CreateGraphNode(RestoreContext context, LibraryRange libraryRange)
+        private void ForEach(IEnumerable<GraphNode> nodes, Action<GraphNode> callback)
+        {
+            foreach (var node in nodes)
+            {
+                callback(node);
+                ForEach(node.Dependencies, callback);
+            }
+        }
+
+        private Task<GraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange)
         {
             return CreateGraphNode(context, libraryRange, _ => true);
         }
 
-        public async Task<GraphNode> CreateGraphNode(RestoreContext context, LibraryRange libraryRange, Func<string, bool> predicate)
+        private async Task<GraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange, Func<string, bool> predicate)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -91,7 +133,7 @@ namespace NuGet3
             };
         }
 
-        public Task<GraphItem> FindLibraryCached(RestoreContext context, LibraryRange libraryRange)
+        public Task<GraphItem> FindLibraryCached(RemoteWalkContext context, LibraryRange libraryRange)
         {
             lock (context.FindLibraryCache)
             {
@@ -106,10 +148,8 @@ namespace NuGet3
             }
         }
 
-        private async Task<GraphItem> FindLibraryEntry(RestoreContext context, LibraryRange libraryRange)
+        private async Task<GraphItem> FindLibraryEntry(RemoteWalkContext context, LibraryRange libraryRange)
         {
-            _report.WriteQuiet(string.Format("Attempting to resolve dependency {0} {1}", libraryRange.Name.Bold(), libraryRange.VersionRange));
-
             var match = await FindLibraryMatch(context, libraryRange);
 
             if (match == null)
@@ -126,7 +166,7 @@ namespace NuGet3
             };
         }
 
-        private async Task<WalkProviderMatch> FindLibraryMatch(RestoreContext context, LibraryRange libraryRange)
+        private async Task<RemoteResolveResult> FindLibraryMatch(RemoteWalkContext context, LibraryRange libraryRange)
         {
             var projectMatch = await FindProjectMatch(context, libraryRange.Name);
 
@@ -215,7 +255,7 @@ namespace NuGet3
             }
         }
 
-        private async Task<WalkProviderMatch> FindProjectMatch(RestoreContext context, string name)
+        private async Task<RemoteResolveResult> FindProjectMatch(RemoteWalkContext context, string name)
         {
             var libraryRange = new LibraryRange
             {
@@ -234,7 +274,7 @@ namespace NuGet3
             return null;
         }
 
-        private async Task<WalkProviderMatch> FindLibraryByVersion(RestoreContext context, LibraryRange libraryRange, IEnumerable<IWalkProvider> providers)
+        private async Task<RemoteResolveResult> FindLibraryByVersion(RemoteWalkContext context, LibraryRange libraryRange, IEnumerable<IWalkProvider> providers)
         {
             if (libraryRange.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
             {
@@ -265,18 +305,18 @@ namespace NuGet3
             return nonHttpMatch;
         }
 
-        private static async Task<WalkProviderMatch> FindLibrary(
+        private static async Task<RemoteResolveResult> FindLibrary(
             LibraryRange libraryRange,
             IEnumerable<IWalkProvider> providers,
-            Func<IWalkProvider, Task<WalkProviderMatch>> action)
+            Func<IWalkProvider, Task<RemoteResolveResult>> action)
         {
-            var tasks = new List<Task<WalkProviderMatch>>();
+            var tasks = new List<Task<RemoteResolveResult>>();
             foreach (var provider in providers)
             {
                 tasks.Add(action(provider));
             }
 
-            WalkProviderMatch bestMatch = null;
+            RemoteResolveResult bestMatch = null;
             var matches = await Task.WhenAll(tasks);
             foreach (var match in matches)
             {

@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Framework.Runtime;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
+using NuGet.Resolver;
 
 namespace NuGet3
 {
@@ -22,16 +22,16 @@ namespace NuGet3
 
         public bool IsHttp { get; private set; }
 
-        public Task<WalkProviderMatch> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
+        public Task<RemoteResolveResult> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
             var description = _dependencyProvider.GetDescription(libraryRange, targetFramework);
 
             if (description == null)
             {
-                return Task.FromResult<WalkProviderMatch>(null);
+                return Task.FromResult<RemoteResolveResult>(null);
             }
 
-            return Task.FromResult(new WalkProviderMatch
+            return Task.FromResult(new RemoteResolveResult
             {
                 Library = description.Identity,
                 Path = description.Path,
@@ -39,14 +39,14 @@ namespace NuGet3
             });
         }
 
-        public Task<IEnumerable<LibraryDependency>> GetDependencies(WalkProviderMatch match, NuGetFramework targetFramework)
+        public Task<IEnumerable<LibraryDependency>> GetDependencies(RemoteResolveResult match, NuGetFramework targetFramework)
         {
             var description = _dependencyProvider.GetDescription(match.Library, targetFramework);
 
             return Task.FromResult(description.Dependencies);
         }
 
-        public Task CopyToAsync(WalkProviderMatch match, Stream stream)
+        public Task CopyToAsync(RemoteResolveResult match, Stream stream)
         {
             // We never call this on local providers
             throw new NotImplementedException();

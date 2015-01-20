@@ -14,7 +14,7 @@ using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Packaging.Extensions;
-using NuGet.Versioning.Extensions;
+using NuGet.Resolver;
 
 namespace NuGet3
 {
@@ -137,11 +137,11 @@ namespace NuGet3
             }
 
             var projectDirectory = project.ProjectDirectory;
-            var restoreOperations = new RestoreOperations(Reports);
+            var restoreOperations = new RemoteDependencyWalker();
             var projectProviders = new List<IWalkProvider>();
             var localProviders = new List<IWalkProvider>();
             var remoteProviders = new List<IWalkProvider>();
-            var contexts = new List<RestoreContext>();
+            var contexts = new List<RemoteWalkContext>();
 
             projectProviders.Add(
                 new LocalWalkProvider(
@@ -162,7 +162,7 @@ namespace NuGet3
 
             foreach (var configuration in project.GetTargetFrameworks())
             {
-                var context = new RestoreContext
+                var context = new RemoteWalkContext
                 {
                     FrameworkName = configuration.FrameworkName,
                     ProjectLibraryProviders = projectProviders,
@@ -183,17 +183,11 @@ namespace NuGet3
             //    });
             //}
 
-            var tasks = new List<Task<GraphNode>>();
+            var tasks = new List<Task<RemoteResolveResults>>();
 
             foreach (var context in contexts)
             {
-                var projectLibrary = new LibraryRange
-                {
-                    Name = project.Name,
-                    VersionRange = new NuGetVersionRange(project.Version)
-                };
-
-                tasks.Add(restoreOperations.CreateGraphNode(context, projectLibrary));
+                tasks.Add(restoreOperations.Walk(context, project.Name, project.Version));
             }
 
             var graphs = await Task.WhenAll(tasks);
@@ -203,34 +197,45 @@ namespace NuGet3
             var installItems = new List<GraphItem>();
             var missingItems = new HashSet<LibraryRange>();
 
-            ForEach(graphs, node =>
+            foreach (var item in graphs)
             {
-                if (node == null || node.LibraryRange == null)
+                installItems.AddRange(item.InstallItems);
+                foreach (var missing in item.MissingItems)
                 {
-                    return;
+                    Reports.WriteError(string.Format("Unable to locate {0} {1}", missing.Name.Red().Bold(), missing.VersionRange));
+                    success = false;
+                    missingItems.Add(missing);
                 }
+            }
 
-                if (node.Item == null || node.Item.Match == null)
-                {
-                    if (!node.LibraryRange.IsGacOrFrameworkReference &&
-                         node.LibraryRange.VersionRange != null &&
-                         missingItems.Add(node.LibraryRange))
-                    {
-                        Reports.WriteError(string.Format("Unable to locate {0} {1}", node.LibraryRange.Name.Red().Bold(), node.LibraryRange.VersionRange));
-                        success = false;
-                    }
+            //ForEach(graphs, node =>
+            //{
+            //    if (node == null || node.LibraryRange == null)
+            //    {
+            //        return;
+            //    }
 
-                    return;
-                }
+            //    if (node.Item == null || node.Item.Match == null)
+            //    {
+            //        if (!node.LibraryRange.IsGacOrFrameworkReference &&
+            //             node.LibraryRange.VersionRange != null &&
+            //             missingItems.Add(node.LibraryRange))
+            //        {
+            //            Reports.WriteError(string.Format("Unable to locate {0} {1}", node.LibraryRange.Name.Red().Bold(), node.LibraryRange.VersionRange));
+            //            success = false;
+            //        }
 
-                var isRemote = remoteProviders.Contains(node.Item.Match.Provider);
-                var isAdded = installItems.Any(item => item.Match.Library == node.Item.Match.Library);
+            //        return;
+            //    }
 
-                if (!isAdded && isRemote)
-                {
-                    installItems.Add(node.Item);
-                }
-            });
+            //    var isRemote = remoteProviders.Contains(node.Item.Match.Provider);
+            //    var isAdded = installItems.Any(item => item.Match.Library == node.Item.Match.Library);
+
+            //    if (!isAdded && isRemote)
+            //    {
+            //        installItems.Add(node.Item);
+            //    }
+            //});
 
             await InstallPackages(installItems, packagesDirectory, packageFilter: (library, nupkgSHA) => true);
 
@@ -438,14 +443,14 @@ namespace NuGet3
         //    }
         //}
 
-        void ForEach(IEnumerable<GraphNode> nodes, Action<GraphNode> callback)
-        {
-            foreach (var node in nodes)
-            {
-                callback(node);
-                ForEach(node.Dependencies, callback);
-            }
-        }
+        //void ForEach(IEnumerable<GraphNode> nodes, Action<GraphNode> callback)
+        //{
+        //    foreach (var node in nodes)
+        //    {
+        //        callback(node);
+        //        ForEach(node.Dependencies, callback);
+        //    }
+        //}
 
         //void Display(string indent, IEnumerable<GraphNode> graphs)
         //{

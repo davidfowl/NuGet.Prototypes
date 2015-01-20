@@ -1,9 +1,9 @@
 ﻿using System;
 using NuGet.Packaging.Extensions;
 
-namespace NuGet3
+namespace NuGet.Resolver
 {
-    public class WalkProviderMatch
+    public class RemoteResolveResult
     {
         public IWalkProvider Provider { get; set; }
         public Library Library { get; set; }
