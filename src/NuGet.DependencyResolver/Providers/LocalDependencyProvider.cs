@@ -7,9 +7,8 @@ using System.IO;
 using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
-using NuGet.DependencyResolver;
 
-namespace NuGet3
+namespace NuGet.DependencyResolver
 {
     public class LocalDependencyProvider : IRemoteDependencyProvider
     {
