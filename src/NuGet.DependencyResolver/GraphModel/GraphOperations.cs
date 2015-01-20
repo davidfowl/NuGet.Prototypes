@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace NuGet.DependencyResolver
 {
@@ -118,6 +120,47 @@ namespace NuGet.DependencyResolver
                 visitor(node);
                 return 0;
             });
+        }
+
+        public static void Dump<TItem>(this GraphNode<TItem> root, Action<string> write)
+        {
+            // Box Drawing Unicode characters:
+            // http://www.unicode.org/charts/PDF/U2500.pdf
+            const char LIGHT_HORIZONTAL = '\u2500';
+            const char LIGHT_UP_AND_RIGHT = '\u2514';
+            const char LIGHT_VERTICAL_AND_RIGHT = '\u251C';
+
+            write(root.Item.Key.ToString());
+
+            Func<GraphNode<TItem>, bool> isValidDependency = d =>
+                (d != null &&
+                 d.Key != null &&
+                 d.Item != null &&
+                 d.Item.Key != null &&
+                 d.Disposition != Disposition.Rejected);
+
+            var dependencies = root.InnerNodes.Where(isValidDependency).ToList();
+            var dependencyNum = dependencies.Count;
+            for (int i = 0; i < dependencyNum; i++)
+            {
+                var branchChar = LIGHT_VERTICAL_AND_RIGHT;
+                if (i == dependencyNum - 1)
+                {
+                    branchChar = LIGHT_UP_AND_RIGHT;
+                }
+
+                var name = dependencies[i].Item.Key.ToString();
+
+                var dependencyListStr = string.Join(", ", dependencies[i].InnerNodes
+                    .Where(isValidDependency)
+                    .Select(d => d.Item.Key.ToString()));
+
+                var format = string.IsNullOrEmpty(dependencyListStr) ? "{0}{1} {2}{3}" : "{0}{1} {2} ({3})";
+
+                write(string.Format(format, branchChar, LIGHT_HORIZONTAL, name, dependencyListStr));
+            }
+
+            write(string.Empty);
         }
     }
 }
