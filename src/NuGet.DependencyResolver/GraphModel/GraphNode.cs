@@ -4,19 +4,18 @@ using NuGet.Packaging.Extensions;
 
 namespace NuGet.DependencyResolver
 {
-    public class GraphNode
+    public class GraphNode<TItem>
     {
         public GraphNode()
         {
-            InnerNodes = new List<GraphNode>();
+            InnerNodes = new List<GraphNode<TItem>>();
             Disposition = Disposition.Acceptable;
         }
 
         public LibraryRange Key { get; set; }
-        public GraphItem Item { get; set; }
-        public GraphNode OuterNode { get; set; }
-        public IList<GraphNode> InnerNodes { get; private set; }
-
+        public GraphItem<TItem> Item { get; set; }
+        public GraphNode<TItem> OuterNode { get; set; }
+        public IList<GraphNode<TItem>> InnerNodes { get; set; }
         public Disposition Disposition { get; set; }
 
         public override string ToString()

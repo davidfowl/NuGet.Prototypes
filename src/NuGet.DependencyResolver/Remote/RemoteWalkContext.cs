@@ -2,10 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
-using NuGet.Frameworks;
 
 namespace NuGet.DependencyResolver
 {
@@ -13,15 +11,13 @@ namespace NuGet.DependencyResolver
     {
         public RemoteWalkContext()
         {
-            FindLibraryCache = new Dictionary<LibraryRange, Task<RemoteGraphItem>>();
+            FindLibraryCache = new Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>>();
         }
 
-        public NuGetFramework FrameworkName { get; set; }
+        public IList<IRemoteDependencyProvider> ProjectLibraryProviders { get; set; }
+        public IList<IRemoteDependencyProvider> LocalLibraryProviders { get; set; }
+        public IList<IRemoteDependencyProvider> RemoteLibraryProviders { get; set; }
 
-        public IList<IWalkProvider> ProjectLibraryProviders { get; set; }
-        public IList<IWalkProvider> LocalLibraryProviders { get; set; }
-        public IList<IWalkProvider> RemoteLibraryProviders { get; set; }
-
-        public Dictionary<LibraryRange, Task<RemoteGraphItem>> FindLibraryCache { get; private set; }
+        public Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>> FindLibraryCache { get; private set; }
     }
 }

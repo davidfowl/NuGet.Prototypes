@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
@@ -15,89 +14,62 @@ namespace NuGet.DependencyResolver
 {
     public class RemoteDependencyWalker
     {
-        public async Task<RemoteResolveResults> Walk(RemoteWalkContext context, string name, NuGetVersion version)
+        private readonly RemoteWalkContext _context;
+
+        public RemoteDependencyWalker(RemoteWalkContext context)
         {
-            var root = await CreateGraphNode(context, new LibraryRange
+            _context = context;
+        }
+
+        public Task<GraphNode<RemoteResolveResult>> Walk(string name, NuGetVersion version, NuGetFramework framework)
+        {
+            return CreateGraphNode(new LibraryRange
             {
                 Name = name,
                 VersionRange = new NuGetVersionRange(version)
-            });
-
-            var results = new RemoteResolveResults();
-
-            ForEach(new[] { root }, node =>
-             {
-                 if (node == null || node.LibraryRange == null)
-                 {
-                     return;
-                 }
-
-                 if (node.LibraryRange.IsGacOrFrameworkReference)
-                 {
-                     return;
-                 }
-
-                 if (node.Item == null || node.Item.Match == null)
-                 {
-                     results.MissingItems.Add(node.LibraryRange);
-                     return;
-                 }
-
-                 var isRemote = context.RemoteLibraryProviders.Contains(node.Item.Match.Provider);
-                 var isAdded = results.InstallItems.Any(item => item.Match.Library == node.Item.Match.Library);
-
-                 if (!isAdded && isRemote)
-                 {
-                     results.InstallItems.Add(node.Item);
-                 }
-             });
-
-            return results;
+            },
+            framework);
         }
 
-        private void ForEach(IEnumerable<RemoteGraphNode> nodes, Action<RemoteGraphNode> callback)
+        private Task<GraphNode<RemoteResolveResult>> CreateGraphNode(LibraryRange libraryRange, NuGetFramework framework)
         {
-            foreach (var node in nodes)
+            return CreateGraphNode(libraryRange, framework, _ => true);
+        }
+
+        private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(LibraryRange libraryRange, NuGetFramework framework, Func<string, bool> predicate)
+        {
+            var node = new GraphNode<RemoteResolveResult>
             {
-                callback(node);
-                ForEach(node.Dependencies, callback);
-            }
-        }
-
-        private Task<RemoteGraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange)
-        {
-            return CreateGraphNode(context, libraryRange, _ => true);
-        }
-
-        private async Task<RemoteGraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange, Func<string, bool> predicate)
-        {
-            var node = new RemoteGraphNode
-            {
-                LibraryRange = libraryRange,
-                Item = await FindLibraryCached(context, libraryRange),
+                Key = libraryRange,
+                Item = await FindLibraryCached(libraryRange, framework),
             };
 
-            if (node.Item != null)
+            if (node.Item == null)
             {
-                if (node.LibraryRange.VersionRange != null &&
-                    node.LibraryRange.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
+                // Reject null items
+                node.Disposition = Disposition.Rejected;
+            }
+            else
+            {
+                if (node.Key.VersionRange != null &&
+                    node.Key.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
                 {
-                    lock (context.FindLibraryCache)
+                    lock (_context.FindLibraryCache)
                     {
-                        if (!context.FindLibraryCache.ContainsKey(node.LibraryRange))
+                        if (!_context.FindLibraryCache.ContainsKey(node.Key))
                         {
-                            context.FindLibraryCache[node.LibraryRange] = Task.FromResult(node.Item);
+                            _context.FindLibraryCache[node.Key] = Task.FromResult(node.Item);
                         }
                     }
                 }
 
-                var tasks = new List<Task<RemoteGraphNode>>();
-                var dependencies = node.Item.Dependencies ?? Enumerable.Empty<LibraryDependency>();
+                var tasks = new List<Task<GraphNode<RemoteResolveResult>>>();
+                var dependencies = node.Item.Data.Dependencies ?? Enumerable.Empty<LibraryDependency>();
                 foreach (var dependency in dependencies)
                 {
                     if (predicate(dependency.Name))
                     {
-                        tasks.Add(CreateGraphNode(context, dependency.LibraryRange, ChainPredicate(predicate, node.Item, dependency)));
+                        tasks.Add(CreateGraphNode(dependency.LibraryRange, framework, ChainPredicate(predicate, node.Item, dependency)));
                     }
                 }
 
@@ -105,24 +77,26 @@ namespace NuGet.DependencyResolver
                 {
                     var task = await Task.WhenAny(tasks);
                     tasks.Remove(task);
-                    var dependency = await task;
-                    node.Dependencies.Add(dependency);
+                    var dependencyNode = await task;
+                    // Not required for anything
+                    dependencyNode.OuterNode = node;
+                    node.InnerNodes.Add(dependencyNode);
                 }
             }
 
             return node;
         }
 
-        private Func<string, bool> ChainPredicate(Func<string, bool> predicate, RemoteGraphItem item, LibraryDependency dependency)
+        private Func<string, bool> ChainPredicate(Func<string, bool> predicate, GraphItem<RemoteResolveResult> item, LibraryDependency dependency)
         {
             return name =>
             {
-                if (item.Match.Library.Name == name)
+                if (item.Data.Match.Library.Name == name)
                 {
                     throw new Exception(string.Format("Circular dependency references not supported. Package '{0}'.", name));
                 }
 
-                if (item.Dependencies.Any(d => d != dependency && d.Name == name))
+                if (item.Data.Dependencies.Any(d => d != dependency && d.Name == name))
                 {
                     return false;
                 }
@@ -131,42 +105,45 @@ namespace NuGet.DependencyResolver
             };
         }
 
-        public Task<RemoteGraphItem> FindLibraryCached(RemoteWalkContext context, LibraryRange libraryRange)
+        public Task<GraphItem<RemoteResolveResult>> FindLibraryCached(LibraryRange libraryRange, NuGetFramework framework)
         {
-            lock (context.FindLibraryCache)
+            lock (_context.FindLibraryCache)
             {
-                Task<RemoteGraphItem> task;
-                if (!context.FindLibraryCache.TryGetValue(libraryRange, out task))
+                Task<GraphItem<RemoteResolveResult>> task;
+                if (!_context.FindLibraryCache.TryGetValue(libraryRange, out task))
                 {
-                    task = FindLibraryEntry(context, libraryRange);
-                    context.FindLibraryCache[libraryRange] = task;
+                    task = FindLibraryEntry(libraryRange, framework);
+                    _context.FindLibraryCache[libraryRange] = task;
                 }
 
                 return task;
             }
         }
 
-        private async Task<RemoteGraphItem> FindLibraryEntry(RemoteWalkContext context, LibraryRange libraryRange)
+        private async Task<GraphItem<RemoteResolveResult>> FindLibraryEntry(LibraryRange libraryRange, NuGetFramework framework)
         {
-            var match = await FindLibraryMatch(context, libraryRange);
+            var match = await FindLibraryMatch(libraryRange, framework);
 
             if (match == null)
             {
                 return null;
             }
 
-            var dependencies = await match.Provider.GetDependencies(match, context.FrameworkName);
+            var dependencies = await match.Provider.GetDependencies(match, framework);
 
-            return new RemoteGraphItem
+            return new GraphItem<RemoteResolveResult>
             {
-                Match = match,
-                Dependencies = dependencies,
+                Data = new RemoteResolveResult
+                {
+                    Match = match,
+                    Dependencies = dependencies
+                },
             };
         }
 
-        private async Task<RemoteResolveResult> FindLibraryMatch(RemoteWalkContext context, LibraryRange libraryRange)
+        private async Task<RemoteMatch> FindLibraryMatch(LibraryRange libraryRange, NuGetFramework framework)
         {
-            var projectMatch = await FindProjectMatch(context, libraryRange.Name);
+            var projectMatch = await FindProjectMatch(libraryRange.Name, framework);
 
             if (projectMatch != null)
             {
@@ -186,18 +163,18 @@ namespace NuGet.DependencyResolver
             if (libraryRange.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
             {
                 // For snapshot dependencies, get the version remotely first.
-                var remoteMatch = await FindLibraryByVersion(context, libraryRange, context.RemoteLibraryProviders);
+                var remoteMatch = await FindLibraryByVersion(libraryRange, framework, _context.RemoteLibraryProviders);
                 if (remoteMatch == null)
                 {
                     // If there was nothing remotely, use the local match (if any)
-                    var localMatch = await FindLibraryByVersion(context, libraryRange, context.LocalLibraryProviders);
+                    var localMatch = await FindLibraryByVersion(libraryRange, framework, _context.LocalLibraryProviders);
                     return localMatch;
                 }
                 else
                 {
                     // Try to see if the specific version found on the remote exists locally. This avoids any unnecessary
                     // remote access incase we already have it in the cache/local packages folder.
-                    var localMatch = await FindLibraryByVersion(context, remoteMatch.Library, context.LocalLibraryProviders);
+                    var localMatch = await FindLibraryByVersion(remoteMatch.Library, framework, _context.LocalLibraryProviders);
 
                     if (localMatch != null && localMatch.Library.Version.Equals(remoteMatch.Library.Version))
                     {
@@ -213,7 +190,7 @@ namespace NuGet.DependencyResolver
             else
             {
                 // Check for the specific version locally.
-                var localMatch = await FindLibraryByVersion(context, libraryRange, context.LocalLibraryProviders);
+                var localMatch = await FindLibraryByVersion(libraryRange, framework, _context.LocalLibraryProviders);
 
                 if (localMatch != null && localMatch.Library.Version.Equals(libraryRange.VersionRange.MinVersion))
                 {
@@ -223,13 +200,13 @@ namespace NuGet.DependencyResolver
 
                 // Either we found a local match but it wasn't the exact version, or 
                 // we didn't find a local match.
-                var remoteMatch = await FindLibraryByVersion(context, libraryRange, context.RemoteLibraryProviders);
+                var remoteMatch = await FindLibraryByVersion(libraryRange, framework, _context.RemoteLibraryProviders);
 
                 if (remoteMatch != null && localMatch == null)
                 {
                     // There wasn't any local match for the specified version but there was a remote match.
                     // See if that version exists locally.
-                    localMatch = await FindLibraryByVersion(context, remoteMatch.Library, context.LocalLibraryProviders);
+                    localMatch = await FindLibraryByVersion(remoteMatch.Library, framework, _context.LocalLibraryProviders);
                 }
 
                 if (localMatch != null && remoteMatch != null)
@@ -253,16 +230,16 @@ namespace NuGet.DependencyResolver
             }
         }
 
-        private async Task<RemoteResolveResult> FindProjectMatch(RemoteWalkContext context, string name)
+        private async Task<RemoteMatch> FindProjectMatch(string name, NuGetFramework framework)
         {
             var libraryRange = new LibraryRange
             {
                 Name = name
             };
 
-            foreach (var provider in context.ProjectLibraryProviders)
+            foreach (var provider in _context.ProjectLibraryProviders)
             {
-                var match = await provider.FindLibrary(libraryRange, context.FrameworkName);
+                var match = await provider.FindLibrary(libraryRange, framework);
                 if (match != null)
                 {
                     return match;
@@ -272,16 +249,16 @@ namespace NuGet.DependencyResolver
             return null;
         }
 
-        private async Task<RemoteResolveResult> FindLibraryByVersion(RemoteWalkContext context, LibraryRange libraryRange, IEnumerable<IWalkProvider> providers)
+        private async Task<RemoteMatch> FindLibraryByVersion(LibraryRange libraryRange, NuGetFramework framework, IEnumerable<IRemoteDependencyProvider> providers)
         {
             if (libraryRange.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
             {
                 // Don't optimize the non http path for floating versions or we'll miss things
-                return await FindLibrary(libraryRange, providers, provider => provider.FindLibrary(libraryRange, context.FrameworkName));
+                return await FindLibrary(libraryRange, providers, provider => provider.FindLibrary(libraryRange, framework));
             }
 
             // Try the non http sources first
-            var nonHttpMatch = await FindLibrary(libraryRange, providers.Where(p => !p.IsHttp), provider => provider.FindLibrary(libraryRange, context.FrameworkName));
+            var nonHttpMatch = await FindLibrary(libraryRange, providers.Where(p => !p.IsHttp), provider => provider.FindLibrary(libraryRange, framework));
 
             // If we found an exact match then use it
             if (nonHttpMatch != null && nonHttpMatch.Library.Version.Equals(libraryRange.VersionRange.MinVersion))
@@ -290,7 +267,7 @@ namespace NuGet.DependencyResolver
             }
 
             // Otherwise try the http sources
-            var httpMatch = await FindLibrary(libraryRange, providers.Where(p => p.IsHttp), provider => provider.FindLibrary(libraryRange, context.FrameworkName));
+            var httpMatch = await FindLibrary(libraryRange, providers.Where(p => p.IsHttp), provider => provider.FindLibrary(libraryRange, framework));
 
             // Pick the best match of the 2
             if (libraryRange.VersionRange.IsBetter(
@@ -303,18 +280,18 @@ namespace NuGet.DependencyResolver
             return nonHttpMatch;
         }
 
-        private static async Task<RemoteResolveResult> FindLibrary(
+        private static async Task<RemoteMatch> FindLibrary(
             LibraryRange libraryRange,
-            IEnumerable<IWalkProvider> providers,
-            Func<IWalkProvider, Task<RemoteResolveResult>> action)
+            IEnumerable<IRemoteDependencyProvider> providers,
+            Func<IRemoteDependencyProvider, Task<RemoteMatch>> action)
         {
-            var tasks = new List<Task<RemoteResolveResult>>();
+            var tasks = new List<Task<RemoteMatch>>();
             foreach (var provider in providers)
             {
                 tasks.Add(action(provider));
             }
 
-            RemoteResolveResult bestMatch = null;
+            RemoteMatch bestMatch = null;
             var matches = await Task.WhenAll(tasks);
             foreach (var match in matches)
             {

@@ -15,7 +15,6 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.DependencyResolver;
 using NuGet.Packaging.Extensions;
-using NuGet.Resolver;
 
 namespace NuGet3
 {
@@ -29,7 +28,7 @@ namespace NuGet3
         }
 
         public string RestoreDirectory { get; set; }
-        
+
         public IEnumerable<string> Sources { get; set; }
         public IEnumerable<string> FallbackSources { get; set; }
         public bool NoCache { get; set; }
@@ -138,21 +137,20 @@ namespace NuGet3
             }
 
             var projectDirectory = project.ProjectDirectory;
-            var restoreOperations = new RemoteDependencyWalker();
-            var projectProviders = new List<IWalkProvider>();
-            var localProviders = new List<IWalkProvider>();
-            var remoteProviders = new List<IWalkProvider>();
+            var projectProviders = new List<IRemoteDependencyProvider>();
+            var localProviders = new List<IRemoteDependencyProvider>();
+            var remoteProviders = new List<IRemoteDependencyProvider>();
             var contexts = new List<RemoteWalkContext>();
 
             projectProviders.Add(
-                new LocalWalkProvider(
+                new LocalDependencyProvider(
                     new ProjectReferenceDependencyProvider(
                         new ProjectResolver(
                             projectDirectory,
                             rootDirectory))));
 
             localProviders.Add(
-                new LocalWalkProvider(
+                new LocalDependencyProvider(
                     new NuGetDependencyResolver(
                         packagesDirectory)));
 
@@ -160,19 +158,7 @@ namespace NuGet3
                 Sources, FallbackSources);
 
             AddRemoteProvidersFromSources(remoteProviders, effectiveSources);
-
-            foreach (var configuration in project.GetTargetFrameworks())
-            {
-                var context = new RemoteWalkContext
-                {
-                    FrameworkName = configuration.FrameworkName,
-                    ProjectLibraryProviders = projectProviders,
-                    LocalLibraryProviders = localProviders,
-                    RemoteLibraryProviders = remoteProviders,
-                };
-                contexts.Add(context);
-            }
-
+            
             //if (!contexts.Any())
             //{
             //    contexts.Add(new RestoreContext
@@ -184,30 +170,40 @@ namespace NuGet3
             //    });
             //}
 
-            var tasks = new List<Task<RemoteResolveResults>>();
+            var tasks = new List<Task<GraphNode<RemoteResolveResult>>>();
 
-            foreach (var context in contexts)
+            foreach (var framework in project.GetTargetFrameworks())
             {
-                tasks.Add(restoreOperations.Walk(context, project.Name, project.Version));
+                var context = new RemoteWalkContext
+                {
+                    ProjectLibraryProviders = projectProviders,
+                    LocalLibraryProviders = localProviders,
+                    RemoteLibraryProviders = remoteProviders,
+                };
+
+                // This is so that we have a unique cache per target framework
+                var remoteWalker = new RemoteDependencyWalker(context);
+                tasks.Add(remoteWalker.Walk(project.Name, project.Version, framework.FrameworkName));
             }
 
             var graphs = await Task.WhenAll(tasks);
 
             Reports.WriteInformation(string.Format("{0}, {1}ms elapsed", "Resolving complete".Green(), sw.ElapsedMilliseconds));
 
-            var installItems = new List<RemoteGraphItem>();
+            var installItems = new List<GraphItem<RemoteResolveResult>>();
             var missingItems = new HashSet<LibraryRange>();
 
-            foreach (var item in graphs)
-            {
-                installItems.AddRange(item.InstallItems);
-                foreach (var missing in item.MissingItems)
-                {
-                    Reports.WriteError(string.Format("Unable to locate {0} {1}", missing.Name.Red().Bold(), missing.VersionRange));
-                    success = false;
-                    missingItems.Add(missing);
-                }
-            }
+            // TODO: Do stuff here
+            //foreach (var item in graphs)
+            //{
+            //    installItems.AddRange(item.InstallItems);
+            //    foreach (var missing in item.MissingItems)
+            //    {
+            //        Reports.WriteError(string.Format("Unable to locate {0} {1}", missing.Name.Red().Bold(), missing.VersionRange));
+            //        success = false;
+            //        missingItems.Add(missing);
+            //    }
+            //}
 
             //ForEach(graphs, node =>
             //{
@@ -362,17 +358,17 @@ namespace NuGet3
         //    return success;
         //}
 
-        private async Task InstallPackages(List<RemoteGraphItem> installItems, string packagesDirectory,
+        private async Task InstallPackages(List<GraphItem<RemoteResolveResult>> installItems, string packagesDirectory,
             Func<Library, string, bool> packageFilter)
         {
             using (var sha512 = SHA512.Create())
             {
                 foreach (var item in installItems)
                 {
-                    var library = item.Match.Library;
+                    var library = item.Data.Match.Library;
 
                     var memStream = new MemoryStream();
-                    await item.Match.Provider.CopyToAsync(item.Match, memStream);
+                    await item.Data.Match.Provider.CopyToAsync(item.Data.Match, memStream);
                     memStream.Seek(0, SeekOrigin.Begin);
                     var nupkgSHA = Convert.ToBase64String(sha512.ComputeHash(memStream));
 
@@ -389,14 +385,14 @@ namespace NuGet3
             }
         }
 
-        private void AddRemoteProvidersFromSources(List<IWalkProvider> remoteProviders, List<PackageSource> effectiveSources)
+        private void AddRemoteProvidersFromSources(List<IRemoteDependencyProvider> remoteProviders, List<PackageSource> effectiveSources)
         {
             foreach (var source in effectiveSources)
             {
                 var feed = PackageSourceUtils.CreatePackageFeed(source, NoCache, IgnoreFailedSources, Reports);
                 if (feed != null)
                 {
-                    remoteProviders.Add(new RemoteWalkProvider(feed));
+                    remoteProviders.Add(new RemoteDependencyProvider(feed));
                 }
             }
         }

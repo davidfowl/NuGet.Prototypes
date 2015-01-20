@@ -11,27 +11,27 @@ using NuGet.DependencyResolver;
 
 namespace NuGet3
 {
-    public class LocalWalkProvider : IWalkProvider
+    public class LocalDependencyProvider : IRemoteDependencyProvider
     {
         private readonly IDependencyProvider _dependencyProvider;
 
-        public LocalWalkProvider(IDependencyProvider dependencyProvider)
+        public LocalDependencyProvider(IDependencyProvider dependencyProvider)
         {
             _dependencyProvider = dependencyProvider;
         }
 
         public bool IsHttp { get; private set; }
 
-        public Task<RemoteResolveResult> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
+        public Task<RemoteMatch> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
             var description = _dependencyProvider.GetDescription(libraryRange, targetFramework);
 
             if (description == null)
             {
-                return Task.FromResult<RemoteResolveResult>(null);
+                return Task.FromResult<RemoteMatch>(null);
             }
 
-            return Task.FromResult(new RemoteResolveResult
+            return Task.FromResult(new RemoteMatch
             {
                 Library = description.Identity,
                 Path = description.Path,
@@ -39,14 +39,14 @@ namespace NuGet3
             });
         }
 
-        public Task<IEnumerable<LibraryDependency>> GetDependencies(RemoteResolveResult match, NuGetFramework targetFramework)
+        public Task<IEnumerable<LibraryDependency>> GetDependencies(RemoteMatch match, NuGetFramework targetFramework)
         {
             var description = _dependencyProvider.GetDescription(match.Library, targetFramework);
 
             return Task.FromResult(description.Dependencies);
         }
 
-        public Task CopyToAsync(RemoteResolveResult match, Stream stream)
+        public Task CopyToAsync(RemoteMatch match, Stream stream)
         {
             // We never call this on local providers
             throw new NotImplementedException();

@@ -1,13 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using NuGet.Packaging.Extensions;
 
 namespace NuGet.DependencyResolver
 {
     public class RemoteResolveResult
     {
-        public IWalkProvider Provider { get; set; }
-        public Library Library { get; set; }
-        public string Path { get; set; }
+        public RemoteMatch Match { get; set; }
+        public IEnumerable<LibraryDependency> Dependencies { get; set; }
     }
-
 }

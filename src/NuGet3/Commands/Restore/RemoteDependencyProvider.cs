@@ -15,11 +15,11 @@ using NuGet.Versioning.Extensions;
 
 namespace NuGet3
 {
-    public class RemoteWalkProvider : IWalkProvider
+    public class RemoteDependencyProvider : IRemoteDependencyProvider
     {
         private readonly IPackageFeed _source;
 
-        public RemoteWalkProvider(IPackageFeed source)
+        public RemoteDependencyProvider(IPackageFeed source)
         {
             _source = source;
             IsHttp = IsHttpSource(source);
@@ -27,7 +27,7 @@ namespace NuGet3
 
         public bool IsHttp { get; private set; }
 
-        public async Task<RemoteResolveResult> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
+        public async Task<RemoteMatch> FindLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
             var results = await _source.FindPackagesByIdAsync(libraryRange.Name);
             PackageInfo bestResult = null;
@@ -46,7 +46,7 @@ namespace NuGet3
                 return null;
             }
 
-            return new RemoteResolveResult
+            return new RemoteMatch
             {
                 Library = new Library
                 {
@@ -58,7 +58,7 @@ namespace NuGet3
             };
         }
 
-        public async Task<IEnumerable<LibraryDependency>> GetDependencies(RemoteResolveResult match, NuGetFramework targetFramework)
+        public async Task<IEnumerable<LibraryDependency>> GetDependencies(RemoteMatch match, NuGetFramework targetFramework)
         {
             using (var stream = await _source.OpenNuspecStreamAsync(new PackageInfo
             {
@@ -94,7 +94,7 @@ namespace NuGet3
             return Enumerable.Empty<LibraryDependency>();
         }
 
-        public async Task CopyToAsync(RemoteResolveResult match, Stream stream)
+        public async Task CopyToAsync(RemoteMatch match, Stream stream)
         {
             using (var nupkgStream = await _source.OpenNupkgStreamAsync(new PackageInfo
             {
