@@ -6,7 +6,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public class DependencyWalker
     {

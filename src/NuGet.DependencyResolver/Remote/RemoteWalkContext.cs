@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public class RemoteWalkContext
     {
         public RemoteWalkContext()
         {
-            FindLibraryCache = new Dictionary<LibraryRange, Task<GraphItem>>();
+            FindLibraryCache = new Dictionary<LibraryRange, Task<RemoteGraphItem>>();
         }
 
         public NuGetFramework FrameworkName { get; set; }
@@ -22,6 +22,6 @@ namespace NuGet.Resolver
         public IList<IWalkProvider> LocalLibraryProviders { get; set; }
         public IList<IWalkProvider> RemoteLibraryProviders { get; set; }
 
-        public Dictionary<LibraryRange, Task<GraphItem>> FindLibraryCache { get; private set; }
+        public Dictionary<LibraryRange, Task<RemoteGraphItem>> FindLibraryCache { get; private set; }
     }
 }

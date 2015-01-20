@@ -13,6 +13,7 @@ using Microsoft.Framework.Runtime;
 using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.DependencyResolver;
 using NuGet.Packaging.Extensions;
 using NuGet.Resolver;
 
@@ -194,7 +195,7 @@ namespace NuGet3
 
             Reports.WriteInformation(string.Format("{0}, {1}ms elapsed", "Resolving complete".Green(), sw.ElapsedMilliseconds));
 
-            var installItems = new List<GraphItem>();
+            var installItems = new List<RemoteGraphItem>();
             var missingItems = new HashSet<LibraryRange>();
 
             foreach (var item in graphs)
@@ -361,7 +362,7 @@ namespace NuGet3
         //    return success;
         //}
 
-        private async Task InstallPackages(List<GraphItem> installItems, string packagesDirectory,
+        private async Task InstallPackages(List<RemoteGraphItem> installItems, string packagesDirectory,
             Func<Library, string, bool> packageFilter)
         {
             using (var sha512 = SHA512.Create())

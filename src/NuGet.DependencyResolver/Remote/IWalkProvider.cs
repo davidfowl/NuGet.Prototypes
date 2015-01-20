@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public interface IWalkProvider
     {

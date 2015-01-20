@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using NuGet.Packaging.Extensions;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
-    public class GraphItem
+    public class RemoteGraphItem
     {
         public RemoteResolveResult Match { get; set; }
         public IEnumerable<LibraryDependency> Dependencies { get; set; }

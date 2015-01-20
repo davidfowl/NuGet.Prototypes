@@ -4,18 +4,18 @@
 using System.Collections.Generic;
 using NuGet.Packaging.Extensions;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
-    public class GraphNode
+    public class RemoteGraphNode
     {
-        public GraphNode()
+        public RemoteGraphNode()
         {
-            Dependencies = new List<GraphNode>();
+            Dependencies = new List<RemoteGraphNode>();
         }
 
         public LibraryRange LibraryRange { get; set; }
-        public List<GraphNode> Dependencies { get; private set; }
-        public GraphItem Item { get; set; }
+        public List<RemoteGraphNode> Dependencies { get; private set; }
+        public RemoteGraphItem Item { get; set; }
     }
 
 }

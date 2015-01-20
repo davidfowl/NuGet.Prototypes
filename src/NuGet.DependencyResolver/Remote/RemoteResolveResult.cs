@@ -1,7 +1,7 @@
 ﻿using System;
 using NuGet.Packaging.Extensions;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public class RemoteResolveResult
     {

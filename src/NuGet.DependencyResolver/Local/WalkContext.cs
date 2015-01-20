@@ -3,18 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public class WalkContext
     {
-        private readonly IDictionary<string, Item> _usedItems = new Dictionary<string, Item>();
+        private readonly IDictionary<string, GraphItem> _usedItems = new Dictionary<string, GraphItem>();
 
         public void Walk(
             IEnumerable<IDependencyProvider> dependencyResolvers,
@@ -22,7 +21,7 @@ namespace NuGet.Resolver
             NuGetVersion version,
             NuGetFramework framework)
         {
-            var root = new Node
+            var root = new GraphNode
             {
                 Key = new LibraryRange
                 {
@@ -32,7 +31,7 @@ namespace NuGet.Resolver
             };
 
             var resolvers = dependencyResolvers as IDependencyProvider[] ?? dependencyResolvers.ToArray();
-            var resolvedItems = new Dictionary<LibraryRange, Item>();
+            var resolvedItems = new Dictionary<LibraryRange, GraphItem>();
 
             // Recurse through dependencies optimistically, asking resolvers for dependencies
             // based on best match of each encountered dependency
@@ -83,7 +82,7 @@ namespace NuGet.Resolver
 
                     if (!eclipsed)
                     {
-                        var innerNode = new Node
+                        var innerNode = new GraphNode
                         {
                             OuterNode = node,
                             Key = dependency.LibraryRange
@@ -197,47 +196,13 @@ namespace NuGet.Resolver
             });
         }
 
-        private static void ForEach<TState>(Node root, TState state, Func<Node, TState, TState> visitor)
-        {
-            // breadth-first walk of Node tree
-
-            var queue = new Queue<Tuple<Node, TState>>();
-            queue.Enqueue(Tuple.Create(root, state));
-            while (queue.Count > 0)
-            {
-                var work = queue.Dequeue();
-                var innerState = visitor(work.Item1, work.Item2);
-                foreach (var innerNode in work.Item1.InnerNodes)
-                {
-                    queue.Enqueue(Tuple.Create(innerNode, innerState));
-                }
-            }
-        }
-
-        private static void ForEach(Node root, Action<Node> visitor)
-        {
-            // breadth-first walk of Node tree, without TState parameter
-            ForEach(root, 0, (node, _) =>
-            {
-                visitor(node);
-                return 0;
-            });
-        }
-
-        private enum Disposition
-        {
-            Acceptable,
-            Rejected,
-            Accepted
-        }
-
-        private Item Resolve(
-            Dictionary<LibraryRange, Item> resolvedItems,
+        private GraphItem Resolve(
+            Dictionary<LibraryRange, GraphItem> resolvedItems,
             IEnumerable<IDependencyProvider> providers,
             LibraryRange packageKey,
             NuGetFramework framework)
         {
-            Item item;
+            GraphItem item;
             if (resolvedItems.TryGetValue(packageKey, out item))
             {
                 return item;
@@ -269,7 +234,7 @@ namespace NuGet.Resolver
                 return item;
             }
 
-            item = new Item()
+            item = new GraphItem()
             {
                 Description = libraryDescripton,
                 Key = libraryDescripton.Identity,
@@ -308,7 +273,7 @@ namespace NuGet.Resolver
 
         private IEnumerable<LibraryDependency> CorrectDependencyVersion(LibraryDependency dependency)
         {
-            Item item;
+            GraphItem item;
             if (_usedItems.TryGetValue(dependency.Name, out item))
             {
                 dependency.Library = item.Key;
@@ -316,92 +281,31 @@ namespace NuGet.Resolver
             }
         }
 
-        private class Node
+        private static void ForEach<TState>(GraphNode root, TState state, Func<GraphNode, TState, TState> visitor)
         {
-            public Node()
+            // breadth-first walk of Node tree
+
+            var queue = new Queue<Tuple<GraphNode, TState>>();
+            queue.Enqueue(Tuple.Create(root, state));
+            while (queue.Count > 0)
             {
-                InnerNodes = new List<Node>();
-                Disposition = Disposition.Acceptable;
-            }
-
-            public LibraryRange Key { get; set; }
-            public Item Item { get; set; }
-            public Node OuterNode { get; set; }
-            public IList<Node> InnerNodes { get; private set; }
-
-            public Disposition Disposition { get; set; }
-
-            public override string ToString()
-            {
-                return (Item?.Key ?? Key) + " " + Disposition;
+                var work = queue.Dequeue();
+                var innerState = visitor(work.Item1, work.Item2);
+                foreach (var innerNode in work.Item1.InnerNodes)
+                {
+                    queue.Enqueue(Tuple.Create(innerNode, innerState));
+                }
             }
         }
 
-        [DebuggerDisplay("{Key}")]
-        private class Item
+        private static void ForEach(GraphNode root, Action<GraphNode> visitor)
         {
-            public LibraryDescription Description { get; set; }
-            public Library Key { get; set; }
-            public IDependencyProvider Resolver { get; set; }
-            public IEnumerable<LibraryDependency> Dependencies { get; set; }
-        }
-
-        private class Tracker
-        {
-            class Entry
+            // breadth-first walk of Node tree, without TState parameter
+            ForEach(root, 0, (node, _) =>
             {
-                public Entry()
-                {
-                    List = new HashSet<Item>();
-                }
-
-                public HashSet<Item> List { get; set; }
-
-                public bool Ambiguous { get; set; }
-            }
-
-            readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
-
-            private Entry GetEntry(Item item)
-            {
-                Entry itemList;
-                if (!_entries.TryGetValue(item.Key.Name, out itemList))
-                {
-                    itemList = new Entry();
-                    _entries[item.Key.Name] = itemList;
-                }
-                return itemList;
-            }
-
-            public void Track(Item item)
-            {
-                var entry = GetEntry(item);
-                if (!entry.List.Contains(item))
-                {
-                    entry.List.Add(item);
-                }
-            }
-
-            public bool IsDisputed(Item item)
-            {
-                return GetEntry(item).List.Count > 1;
-            }
-
-            public bool IsAmbiguous(Item item)
-            {
-                return GetEntry(item).Ambiguous;
-            }
-
-            public void MarkAmbiguous(Item item)
-            {
-                GetEntry(item).Ambiguous = true;
-            }
-
-            public bool IsBestVersion(Item item)
-            {
-                var entry = GetEntry(item);
-                return entry.List.All(known => item.Key.Version >= known.Key.Version);
-            }
+                visitor(node);
+                return 0;
+            });
         }
     }
 }

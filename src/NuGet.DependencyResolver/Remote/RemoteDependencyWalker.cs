@@ -11,7 +11,7 @@ using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 
-namespace NuGet.Resolver
+namespace NuGet.DependencyResolver
 {
     public class RemoteDependencyWalker
     {
@@ -55,7 +55,7 @@ namespace NuGet.Resolver
             return results;
         }
 
-        private void ForEach(IEnumerable<GraphNode> nodes, Action<GraphNode> callback)
+        private void ForEach(IEnumerable<RemoteGraphNode> nodes, Action<RemoteGraphNode> callback)
         {
             foreach (var node in nodes)
             {
@@ -64,14 +64,14 @@ namespace NuGet.Resolver
             }
         }
 
-        private Task<GraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange)
+        private Task<RemoteGraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange)
         {
             return CreateGraphNode(context, libraryRange, _ => true);
         }
 
-        private async Task<GraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange, Func<string, bool> predicate)
+        private async Task<RemoteGraphNode> CreateGraphNode(RemoteWalkContext context, LibraryRange libraryRange, Func<string, bool> predicate)
         {
-            var node = new GraphNode
+            var node = new RemoteGraphNode
             {
                 LibraryRange = libraryRange,
                 Item = await FindLibraryCached(context, libraryRange),
@@ -91,7 +91,7 @@ namespace NuGet.Resolver
                     }
                 }
 
-                var tasks = new List<Task<GraphNode>>();
+                var tasks = new List<Task<RemoteGraphNode>>();
                 var dependencies = node.Item.Dependencies ?? Enumerable.Empty<LibraryDependency>();
                 foreach (var dependency in dependencies)
                 {
@@ -113,7 +113,7 @@ namespace NuGet.Resolver
             return node;
         }
 
-        private Func<string, bool> ChainPredicate(Func<string, bool> predicate, GraphItem item, LibraryDependency dependency)
+        private Func<string, bool> ChainPredicate(Func<string, bool> predicate, RemoteGraphItem item, LibraryDependency dependency)
         {
             return name =>
             {
@@ -131,11 +131,11 @@ namespace NuGet.Resolver
             };
         }
 
-        public Task<GraphItem> FindLibraryCached(RemoteWalkContext context, LibraryRange libraryRange)
+        public Task<RemoteGraphItem> FindLibraryCached(RemoteWalkContext context, LibraryRange libraryRange)
         {
             lock (context.FindLibraryCache)
             {
-                Task<GraphItem> task;
+                Task<RemoteGraphItem> task;
                 if (!context.FindLibraryCache.TryGetValue(libraryRange, out task))
                 {
                     task = FindLibraryEntry(context, libraryRange);
@@ -146,7 +146,7 @@ namespace NuGet.Resolver
             }
         }
 
-        private async Task<GraphItem> FindLibraryEntry(RemoteWalkContext context, LibraryRange libraryRange)
+        private async Task<RemoteGraphItem> FindLibraryEntry(RemoteWalkContext context, LibraryRange libraryRange)
         {
             var match = await FindLibraryMatch(context, libraryRange);
 
@@ -157,7 +157,7 @@ namespace NuGet.Resolver
 
             var dependencies = await match.Provider.GetDependencies(match, context.FrameworkName);
 
-            return new GraphItem
+            return new RemoteGraphItem
             {
                 Match = match,
                 Dependencies = dependencies,
