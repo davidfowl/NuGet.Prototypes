@@ -11,7 +11,7 @@ using NuGet.Packaging.Extensions.Frameworks;
 using NuGet.Repositories;
 using NuGet.Versioning.Extensions;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.DependencyResolver
 {
     public class NuGetDependencyResolver : IDependencyProvider
     {

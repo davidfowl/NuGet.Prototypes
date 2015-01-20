@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
 using NuGet.Packaging.Extensions.Frameworks;
