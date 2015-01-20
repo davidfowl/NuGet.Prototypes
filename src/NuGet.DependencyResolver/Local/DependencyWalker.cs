@@ -21,14 +21,13 @@ namespace NuGet.DependencyResolver
 
         public GraphNode<ResolveResult> Walk(string name, NuGetVersion version, NuGetFramework framework)
         {
-            var root = new GraphNode<ResolveResult>
+            var key = new LibraryRange
             {
-                Key = new LibraryRange
-                {
-                    Name = name,
-                    VersionRange = new NuGetVersionRange(version)
-                }
+                Name = name,
+                VersionRange = new NuGetVersionRange(version)
             };
+
+            var root = new GraphNode<ResolveResult>(key);
 
             var resolvedItems = new Dictionary<LibraryRange, GraphItem<ResolveResult>>();
 
@@ -81,10 +80,9 @@ namespace NuGet.DependencyResolver
 
                     if (!eclipsed)
                     {
-                        var innerNode = new GraphNode<ResolveResult>
+                        var innerNode = new GraphNode<ResolveResult>(dependency.LibraryRange)
                         {
-                            OuterNode = node,
-                            Key = dependency.LibraryRange
+                            OuterNode = node
                         };
 
                         node.InnerNodes.Add(innerNode);
@@ -132,9 +130,8 @@ namespace NuGet.DependencyResolver
                 return item;
             }
 
-            item = new GraphItem<ResolveResult>()
+            item = new GraphItem<ResolveResult>(libraryDescripton.Identity)
             {
-                Key = libraryDescripton.Identity,
                 Data = new ResolveResult
                 {
                     LibraryDescription = libraryDescripton,

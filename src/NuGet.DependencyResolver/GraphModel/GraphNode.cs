@@ -6,8 +6,9 @@ namespace NuGet.DependencyResolver
 {
     public class GraphNode<TItem>
     {
-        public GraphNode()
+        public GraphNode(LibraryRange key)
         {
+            Key = key;
             InnerNodes = new List<GraphNode<TItem>>();
             Disposition = Disposition.Acceptable;
         }

@@ -38,9 +38,8 @@ namespace NuGet.DependencyResolver
 
         private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(LibraryRange libraryRange, NuGetFramework framework, Func<string, bool> predicate)
         {
-            var node = new GraphNode<RemoteResolveResult>
+            var node = new GraphNode<RemoteResolveResult>(libraryRange)
             {
-                Key = libraryRange,
                 Item = await FindLibraryCached(libraryRange, framework),
             };
 
@@ -131,9 +130,8 @@ namespace NuGet.DependencyResolver
 
             var dependencies = await match.Provider.GetDependencies(match, framework);
 
-            return new GraphItem<RemoteResolveResult>
+            return new GraphItem<RemoteResolveResult>(match.Library)
             {
-                Key = match.Library,
                 Data = new RemoteResolveResult
                 {
                     Match = match,
