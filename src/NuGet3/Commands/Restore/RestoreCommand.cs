@@ -195,8 +195,15 @@ namespace NuGet3
 
             foreach (var g in graphs)
             {
+                g.Dump(s => Reports.WriteInformation(s));
                 g.TryResolveConflicts();
+                g.Dump(s => Reports.WriteInformation(s));
             }
+
+            //foreach (var g in graphs)
+            //{
+            //    g.TryResolveConflicts();
+            //}
 
             // TODO: Do stuff here
             //foreach (var item in graphs)

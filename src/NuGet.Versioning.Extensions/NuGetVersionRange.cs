@@ -13,6 +13,7 @@ namespace NuGet.Versioning.Extensions
         {
             MinVersion = versionRange.MinVersion as NuGetVersion;
             MaxVersion = versionRange.MaxVersion as NuGetVersion;
+            IsMaxInclusive = versionRange.IsMaxInclusive;
             VersionFloatBehavior = NuGetVersionFloatBehavior.None;
         }
 
@@ -63,7 +64,7 @@ namespace NuGet.Versioning.Extensions
 
             if (MaxVersion != null)
             {
-                sb.Append(IsMaxInclusive ? "<= " : "< ");
+                sb.Append(IsMaxInclusive ? " <= " : " < ");
                 sb.Append(MaxVersion);
             }
 
