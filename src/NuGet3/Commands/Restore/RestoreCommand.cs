@@ -9,12 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Build.Evaluation;
 using Microsoft.Framework.Runtime;
 using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.DependencyResolver;
+using NuGet.MSBuild;
 using NuGet.Packaging.Extensions;
+
+using NuGetProject = Microsoft.Framework.Runtime.Project;
 
 namespace NuGet3
 {
@@ -53,7 +57,7 @@ namespace NuGet3
 
                 // If the root argument is a project.json file
                 if (string.Equals(
-                    Project.ProjectFileName,
+                    NuGetProject.ProjectFileName,
                     Path.GetFileName(RestoreDirectory),
                     StringComparison.OrdinalIgnoreCase))
                 {
@@ -130,8 +134,8 @@ namespace NuGet3
             var sw = new Stopwatch();
             sw.Start();
 
-            Project project;
-            if (!Project.TryGetProject(projectJsonPath, out project))
+            NuGetProject project;
+            if (!NuGetProject.TryGetProject(projectJsonPath, out project))
             {
                 throw new Exception("Unable to locate project.json");
             }
@@ -141,6 +145,33 @@ namespace NuGet3
             var localProviders = new List<IRemoteDependencyProvider>();
             var remoteProviders = new List<IRemoteDependencyProvider>();
             var contexts = new List<RemoteWalkContext>();
+
+            var properties = new Dictionary<string, string>
+            {
+                { "DesignTimeBuild", "true" },
+                { "BuildProjectReferences", "false" },
+                { "_ResolveReferenceDependencies", "true" },
+                { "SolutionDir", rootDirectory + Path.DirectorySeparatorChar }
+            };
+
+            var projectCollection = new ProjectCollection();
+            foreach (var projectFile in Directory.EnumerateFiles(projectDirectory, "*.csproj"))
+            {
+                projectCollection.LoadProject(projectFile);
+            }
+
+            foreach (var projectFile in Directory.EnumerateFiles(projectDirectory, "*.vbproj"))
+            {
+                projectCollection.LoadProject(projectFile);
+            }
+
+            foreach (var projectFile in Directory.EnumerateFiles(projectDirectory, "*.fsproj"))
+            {
+                projectCollection.LoadProject(projectFile);
+            }
+            
+            projectProviders.Add(new LocalDependencyProvider(
+                new MSBuildDependencyProvider(projectCollection)));
 
             projectProviders.Add(
                 new LocalDependencyProvider(
@@ -158,7 +189,7 @@ namespace NuGet3
                 Sources, FallbackSources);
 
             AddRemoteProvidersFromSources(remoteProviders, effectiveSources);
-            
+
             //if (!contexts.Any())
             //{
             //    contexts.Add(new RestoreContext

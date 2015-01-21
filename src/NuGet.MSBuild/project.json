@@ -1,0 +1,19 @@
+﻿{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "DotNet.Project.Core": "1.0.0-*",
+        "NuGet.DependencyResolver": "1.0.0-*"
+    },
+
+    "frameworks": {
+        "aspnet50": {
+            "frameworkAssemblies": {
+                "System.Globalization": "",
+                "Microsoft.Build": "",
+                "Microsoft.Build.Engine": "",
+                "Microsoft.Build.Framework": "",
+                "System.Xml": ""
+            }
+        }
+    }
+}

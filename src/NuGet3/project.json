@@ -8,6 +8,7 @@
         "NuGet.Client": "1.0.0-*",
         "NuGet.Common": { "version": "1.0.0-*", "type": "build" },
         "NuGet.DependencyResolver": "1.0.0-*",
+        "NuGet.MSBuild": "1.0.0-*",
         "Microsoft.Framework.CommandLineUtils": { "version": "1.0.0-*", "type": "build" }
     },
     "commands": {
