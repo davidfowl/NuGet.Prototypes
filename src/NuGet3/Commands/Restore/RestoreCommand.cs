@@ -15,9 +15,10 @@ using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.DependencyResolver;
+using NuGet.Frameworks;
 using NuGet.MSBuild;
 using NuGet.Packaging.Extensions;
-
+using NuGet.Versioning;
 using NuGetProject = Microsoft.Framework.Runtime.Project;
 
 namespace NuGet3
@@ -141,10 +142,6 @@ namespace NuGet3
             }
 
             var projectDirectory = project.ProjectDirectory;
-            var projectProviders = new List<IRemoteDependencyProvider>();
-            var localProviders = new List<IRemoteDependencyProvider>();
-            var remoteProviders = new List<IRemoteDependencyProvider>();
-            var contexts = new List<RemoteWalkContext>();
 
             var properties = new Dictionary<string, string>
             {
@@ -169,18 +166,20 @@ namespace NuGet3
             {
                 projectCollection.LoadProject(projectFile);
             }
-            
-            projectProviders.Add(new LocalDependencyProvider(
+
+            var context = new RemoteWalkContext();
+
+            context.ProjectLibraryProviders.Add(new LocalDependencyProvider(
                 new MSBuildDependencyProvider(projectCollection)));
 
-            projectProviders.Add(
+            context.ProjectLibraryProviders.Add(
                 new LocalDependencyProvider(
                     new ProjectReferenceDependencyProvider(
                         new ProjectResolver(
                             projectDirectory,
                             rootDirectory))));
 
-            localProviders.Add(
+            context.LocalLibraryProviders.Add(
                 new LocalDependencyProvider(
                     new NuGetDependencyResolver(
                         packagesDirectory)));
@@ -188,33 +187,27 @@ namespace NuGet3
             var effectiveSources = PackageSourceUtils.GetEffectivePackageSources(SourceProvider,
                 Sources, FallbackSources);
 
-            AddRemoteProvidersFromSources(remoteProviders, effectiveSources);
-
-            //if (!contexts.Any())
-            //{
-            //    contexts.Add(new RestoreContext
-            //    {
-            //        FrameworkName = ApplicationEnvironment.RuntimeFramework,
-            //        ProjectLibraryProviders = projectProviders,
-            //        LocalLibraryProviders = localProviders,
-            //        RemoteLibraryProviders = remoteProviders,
-            //    });
-            //}
+            AddRemoteProvidersFromSources(context.RemoteLibraryProviders, effectiveSources);
+            
+            var remoteWalker = new RemoteDependencyWalker(context);
 
             var tasks = new List<Task<GraphNode<RemoteResolveResult>>>();
 
-            foreach (var framework in project.GetTargetFrameworks())
+            var msbuildProject = projectCollection.LoadedProjects.FirstOrDefault();
+            if (msbuildProject != null)
             {
-                var context = new RemoteWalkContext
-                {
-                    ProjectLibraryProviders = projectProviders,
-                    LocalLibraryProviders = localProviders,
-                    RemoteLibraryProviders = remoteProviders,
-                };
+                var name = msbuildProject.GetPropertyValue("AssemblyName");
+                var targetFrameworkMoniker = msbuildProject.GetPropertyValue("TargetFrameworkMoniker");
 
                 // This is so that we have a unique cache per target framework
-                var remoteWalker = new RemoteDependencyWalker(context);
-                tasks.Add(remoteWalker.Walk(project.Name, project.Version, framework.FrameworkName));
+                tasks.Add(remoteWalker.Walk(name, new NuGetVersion(new Version()), NuGetFramework.Parse(targetFrameworkMoniker)));
+            }
+            else
+            {
+                foreach (var framework in project.GetTargetFrameworks())
+                {
+                    tasks.Add(remoteWalker.Walk(project.Name, project.Version, framework.FrameworkName));
+                }
             }
 
             var graphs = await Task.WhenAll(tasks);
@@ -428,7 +421,7 @@ namespace NuGet3
             }
         }
 
-        private void AddRemoteProvidersFromSources(List<IRemoteDependencyProvider> remoteProviders, List<PackageSource> effectiveSources)
+        private void AddRemoteProvidersFromSources(IList<IRemoteDependencyProvider> remoteProviders, List<PackageSource> effectiveSources)
         {
             foreach (var source in effectiveSources)
             {

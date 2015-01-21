@@ -23,24 +23,22 @@ namespace NuGet.DependencyResolver
 
         public Task<GraphNode<RemoteResolveResult>> Walk(string name, NuGetVersion version, NuGetFramework framework)
         {
-            return CreateGraphNode(new LibraryRange
+            var cache = new Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>>();
+
+            return CreateGraphNode(cache, new LibraryRange
             {
                 Name = name,
                 VersionRange = new NuGetVersionRange(version)
             },
-            framework);
+            framework,
+            _ => true);
         }
 
-        private Task<GraphNode<RemoteResolveResult>> CreateGraphNode(LibraryRange libraryRange, NuGetFramework framework)
-        {
-            return CreateGraphNode(libraryRange, framework, _ => true);
-        }
-
-        private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(LibraryRange libraryRange, NuGetFramework framework, Func<string, bool> predicate)
+        private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>> cache, LibraryRange libraryRange, NuGetFramework framework, Func<string, bool> predicate)
         {
             var node = new GraphNode<RemoteResolveResult>(libraryRange)
             {
-                Item = await FindLibraryCached(libraryRange, framework),
+                Item = await FindLibraryCached(cache, libraryRange, framework),
             };
 
             if (node.Item == null)
@@ -53,11 +51,11 @@ namespace NuGet.DependencyResolver
                 if (node.Key.VersionRange != null &&
                     node.Key.VersionRange.VersionFloatBehavior != NuGetVersionFloatBehavior.None)
                 {
-                    lock (_context.FindLibraryCache)
+                    lock (cache)
                     {
-                        if (!_context.FindLibraryCache.ContainsKey(node.Key))
+                        if (!cache.ContainsKey(node.Key))
                         {
-                            _context.FindLibraryCache[node.Key] = Task.FromResult(node.Item);
+                            cache[node.Key] = Task.FromResult(node.Item);
                         }
                     }
                 }
@@ -68,7 +66,7 @@ namespace NuGet.DependencyResolver
                 {
                     if (predicate(dependency.Name))
                     {
-                        tasks.Add(CreateGraphNode(dependency.LibraryRange, framework, ChainPredicate(predicate, node.Item, dependency)));
+                        tasks.Add(CreateGraphNode(cache, dependency.LibraryRange, framework, ChainPredicate(predicate, node.Item, dependency)));
                     }
                 }
 
@@ -104,15 +102,15 @@ namespace NuGet.DependencyResolver
             };
         }
 
-        public Task<GraphItem<RemoteResolveResult>> FindLibraryCached(LibraryRange libraryRange, NuGetFramework framework)
+        public Task<GraphItem<RemoteResolveResult>> FindLibraryCached(Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>> cache, LibraryRange libraryRange, NuGetFramework framework)
         {
-            lock (_context.FindLibraryCache)
+            lock (cache)
             {
                 Task<GraphItem<RemoteResolveResult>> task;
-                if (!_context.FindLibraryCache.TryGetValue(libraryRange, out task))
+                if (!cache.TryGetValue(libraryRange, out task))
                 {
                     task = FindLibraryEntry(libraryRange, framework);
-                    _context.FindLibraryCache[libraryRange] = task;
+                    cache[libraryRange] = task;
                 }
 
                 return task;
