@@ -104,14 +104,19 @@ namespace NuGet.DependencyResolver
                 return item;
             }
 
-            Tuple<IDependencyProvider, LibraryDescription> hit = null;
+            ResolveResult hit = null;
 
             foreach (var dependencyProvider in _dependencyProviders)
             {
                 var match = dependencyProvider.GetDescription(packageKey, framework);
                 if (match != null)
                 {
-                    hit = Tuple.Create(dependencyProvider, match);
+                    hit = new ResolveResult
+                    {
+                        DependencyProvider = dependencyProvider,
+                        LibraryDescription = match
+                    };
+
                     break;
                 }
             }
@@ -122,25 +127,18 @@ namespace NuGet.DependencyResolver
                 return null;
             }
 
-            var provider = hit.Item1;
-            var libraryDescripton = hit.Item2;
-
-            if (resolvedItems.TryGetValue(libraryDescripton.Identity, out item))
+            if (resolvedItems.TryGetValue(hit.LibraryDescription.Identity, out item))
             {
                 return item;
             }
 
-            item = new GraphItem<ResolveResult>(libraryDescripton.Identity)
+            item = new GraphItem<ResolveResult>(hit.LibraryDescription.Identity)
             {
-                Data = new ResolveResult
-                {
-                    LibraryDescription = libraryDescripton,
-                    DependencyProvider = provider
-                }
+                Data = hit
             };
 
             resolvedItems[packageKey] = item;
-            resolvedItems[libraryDescripton.Identity] = item;
+            resolvedItems[hit.LibraryDescription.Identity] = item;
             return item;
         }
     }
