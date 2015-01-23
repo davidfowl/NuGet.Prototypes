@@ -1,7 +1,5 @@
-﻿using NuGet;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Versioning;
 using NuGet.ContentModel;
 using NuGet.Frameworks;
@@ -28,7 +26,7 @@ namespace NuGet3
 
         public IDictionary<string, ContentPropertyDefinition> Definitions { get; }
 
-        ContentPropertyDefinition _arch = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _arch = new ContentPropertyDefinition
         {
             Table =
                 {
@@ -40,7 +38,7 @@ namespace NuGet3
                 }
         };
 
-        ContentPropertyDefinition _language = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _language = new ContentPropertyDefinition
         {
             Table =
                 {
@@ -50,7 +48,7 @@ namespace NuGet3
                 }
         };
 
-        ContentPropertyDefinition _targetFramework = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _targetFramework = new ContentPropertyDefinition
         {
             Table =
                 {
@@ -65,7 +63,7 @@ namespace NuGet3
             OnIsCriteriaSatisfied = TargetFrameworkName_IsCriteriaSatisfied
         };
 
-        ContentPropertyDefinition _targetPlatform = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _targetPlatform = new ContentPropertyDefinition
         {
             Table =
                 {
@@ -81,27 +79,27 @@ namespace NuGet3
             OnIsCriteriaSatisfied = TargetPlatformName_IsCriteriaSatisfied,
         };
 
-        ContentPropertyDefinition _assembly = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _assembly = new ContentPropertyDefinition
         {
             FileExtensions = { ".dll" }
         };
 
-        ContentPropertyDefinition _dynamicLibrary = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _dynamicLibrary = new ContentPropertyDefinition
         {
             FileExtensions = { ".dll", ".dylib", ".so" }
         };
 
-        ContentPropertyDefinition _resources = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _resources = new ContentPropertyDefinition
         {
             FileExtensions = { ".resources.dll" }
         };
 
-        ContentPropertyDefinition _locale = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _locale = new ContentPropertyDefinition
         {
             Parser = Locale_Parser,
         };
 
-        ContentPropertyDefinition _any = new ContentPropertyDefinition
+        private readonly ContentPropertyDefinition _any = new ContentPropertyDefinition
         {
             Parser = name => name
         };
@@ -123,21 +121,6 @@ namespace NuGet3
 
         internal static object TargetFrameworkName_Parser(string name)
         {
-            if (name.Contains('.') || name.Contains('/'))
-            {
-                return null;
-            }
-
-            if (name.StartsWith("portable-", StringComparison.OrdinalIgnoreCase))
-            {
-                // return new NetPortableProfileWithToString(NetPortableProfile.Parse(name.Substring("portable-".Length)));
-            }
-
-            if (name == "contract")
-            {
-                return null;
-            }
-
             var result = NuGetFramework.Parse(name);
 
             if (result != NuGetFramework.UnsupportedFramework)
@@ -152,37 +135,12 @@ namespace NuGet3
         {
             var criteriaFrameworkName = criteria as NuGetFramework;
             var availableFrameworkName = available as NuGetFramework;
-
+            
             if (criteriaFrameworkName != null && availableFrameworkName != null)
             {
-                if (!string.Equals(criteriaFrameworkName.Framework, availableFrameworkName.Framework, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-
-                if (NormalizeVersion(criteriaFrameworkName.Version) < NormalizeVersion(availableFrameworkName.Version))
-                {
-                    return false;
-                }
-
-                if (!string.Equals(criteriaFrameworkName.Profile, availableFrameworkName.Profile, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-
-                return true;
+                return DefaultCompatibilityProvider.Instance.IsCompatible(criteriaFrameworkName, availableFrameworkName);
             }
-
-            /*var criteriaPortableProfile = criteria as NetPortableProfileWithToString;
-            var availablePortableProfile = available as NetPortableProfileWithToString;
-            if (criteriaPortableProfile != null && availablePortableProfile != null)
-            {
-                if (availablePortableProfile.Profile.IsCompatibleWith(criteriaPortableProfile.Profile))
-                {
-                    return true;
-                }
-            }*/
-
+            
             return false;
         }
 
@@ -193,7 +151,7 @@ namespace NuGet3
 
             if (criteriaFrameworkName != null && availableFrameworkName != null)
             {
-                if (!String.Equals(criteriaFrameworkName.Identifier, availableFrameworkName.Identifier, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(criteriaFrameworkName.Identifier, availableFrameworkName.Identifier, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -216,29 +174,4 @@ namespace NuGet3
                                Math.Max(version.Revision, 0));
         }
     }
-
-    /*public class NetPortableProfileWithToString
-    {
-        public NetPortableProfileWithToString(NetPortableProfile profile)
-        {
-            Profile = profile;
-        }
-
-        public NetPortableProfile Profile { get; }
-
-        public override string ToString()
-        {
-            return "portable-" + Profile.CustomProfileString;
-        }
-
-        public override int GetHashCode()
-        {
-            return Profile.CustomProfileString?.GetHashCode() ?? 0;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Profile.CustomProfileString.Equals((obj as NetPortableProfileWithToString)?.Profile?.CustomProfileString);
-        }
-    }*/
 }

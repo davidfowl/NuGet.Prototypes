@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Versioning;
 
 namespace NuGet.ContentModel
 {
@@ -21,7 +19,6 @@ namespace NuGet.ContentModel
         public bool FileExtensionAllowSubFolders { get; set; }
 
         public Func<string, object> Parser { get; set; }
-
 
         public virtual bool TryLookup(string name, out object value)
         {
