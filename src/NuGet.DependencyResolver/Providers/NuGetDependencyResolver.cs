@@ -41,6 +41,7 @@ namespace NuGet.DependencyResolver
                         Name = package.Id,
                         Version = package.Version
                     },
+                    Path = package.ManifestPath,
                     Dependencies = GetDependencies(package, targetFramework)
                 };
             }
@@ -78,47 +79,46 @@ namespace NuGet.DependencyResolver
                         }
                     };
                 }
+            }
 
-                // TODO: Remove this when we do #596
-                // ASP.NET Core isn't compatible with generic PCL profiles
-                //if (string.Equals(targetFramework.Identifier, VersionUtility.AspNetCoreFrameworkIdentifier, StringComparison.OrdinalIgnoreCase))
-                //{
-                //    yield break;
-                //}
+            // TODO: Remove this when we do #596
+            // ASP.NET Core isn't compatible with generic PCL profiles
+            //if (string.Equals(targetFramework.Identifier, VersionUtility.AspNetCoreFrameworkIdentifier, StringComparison.OrdinalIgnoreCase))
+            //{
+            //    yield break;
+            //}
 
-                var frameworks = nuspecReader.GetFrameworkReferenceGroups()
-                                             .ToDictionary(f => new NuGetFramework(f.TargetFramework),
-                                                           f => f.Items);
+            var frameworks = nuspecReader.GetFrameworkReferenceGroups()
+                                         .ToDictionary(f => new NuGetFramework(f.TargetFramework),
+                                                       f => f.Items);
 
-                nearest = reducer.GetNearest(targetFramework, frameworks.Keys);
+            nearest = reducer.GetNearest(targetFramework, frameworks.Keys) ?? frameworks.Keys.FirstOrDefault(f => f.AnyPlatform);
 
-                if (nearest != null)
+            if (nearest != null)
+            {
+                if (nearest.AnyPlatform && !targetFramework.IsDesktop())
                 {
-                    if (nearest.IsAny && !targetFramework.IsDesktop())
-                    {
-                        // REVIEW: This isn't 100% correct since none *can* mean 
-                        // any in theory, but in practice it means .NET full reference assembly
-                        // If there's no supported target frameworks and we're not targeting
-                        // the desktop framework then skip it.
+                    // REVIEW: This isn't 100% correct since none *can* mean 
+                    // any in theory, but in practice it means .NET full reference assembly
+                    // If there's no supported target frameworks and we're not targeting
+                    // the desktop framework then skip it.
 
-                        // To do this properly we'll need all reference assemblies supported
-                        // by each supported target framework which isn't always available.
-                        yield break;
-                    }
-
-                    foreach (var name in frameworks[nearest])
-                    {
-                        yield return new LibraryDependency
-                        {
-                            LibraryRange = new LibraryRange
-                            {
-                                Name = name,
-                                IsGacOrFrameworkReference = true
-                            }
-                        };
-                    }
+                    // To do this properly we'll need all reference assemblies supported
+                    // by each supported target framework which isn't always available.
+                    yield break;
                 }
 
+                foreach (var name in frameworks[nearest])
+                {
+                    yield return new LibraryDependency
+                    {
+                        LibraryRange = new LibraryRange
+                        {
+                            Name = name,
+                            IsGacOrFrameworkReference = true
+                        }
+                    };
+                }
             }
         }
 

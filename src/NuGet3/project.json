@@ -9,10 +9,11 @@
         "NuGet.Common": { "version": "1.0.0-*", "type": "build" },
         "NuGet.DependencyResolver": "1.0.0-*",
         "NuGet.MSBuild": "1.0.0-*",
+        "NuGet.ContentModel": "1.0.0-*",
         "Microsoft.Framework.CommandLineUtils": { "version": "1.0.0-*", "type": "build" }
     },
     "commands": {
-        "nuget3": "run restore"
+        "nuget3": "run"
     },
     "frameworks": {
         "aspnet50": {

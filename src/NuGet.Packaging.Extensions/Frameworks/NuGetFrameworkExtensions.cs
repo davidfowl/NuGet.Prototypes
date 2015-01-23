@@ -7,7 +7,7 @@ namespace NuGet.Packaging.Extensions.Frameworks
     {
         public static bool IsDesktop(this NuGetFramework framework)
         {
-            return framework.DotNetFrameworkName == ".NETFramework";
+            return framework.DotNetFrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase);
         }
 
     }

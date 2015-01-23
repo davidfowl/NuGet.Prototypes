@@ -188,7 +188,7 @@ namespace NuGet3
                 Sources, FallbackSources);
 
             AddRemoteProvidersFromSources(context.RemoteLibraryProviders, effectiveSources);
-            
+
             var remoteWalker = new RemoteDependencyWalker(context);
 
             var tasks = new List<Task<GraphNode<RemoteResolveResult>>>();
@@ -220,55 +220,36 @@ namespace NuGet3
             foreach (var g in graphs)
             {
                 g.Dump(s => Logger.WriteInformation(s));
-                g.TryResolveConflicts();
-                g.Dump(s => Logger.WriteInformation(s));
+
+                g.ForEach(node =>
+                {
+                    if (node == null || node.Key == null)
+                    {
+                        return;
+                    }
+                    
+                    if (node.Item == null || node.Item.Data.Match == null)
+                    {
+                        if (!node.Key.IsGacOrFrameworkReference &&
+                             node.Key.VersionRange != null &&
+                             missingItems.Add(node.Key))
+                        {
+                            Logger.WriteError(string.Format("Unable to locate {0} {1}", node.Key.Name.Red().Bold(), node.Key.VersionRange));
+                            success = false;
+                        }
+
+                        return;
+                    }
+
+                    var isRemote = context.RemoteLibraryProviders.Contains(node.Item.Data.Match.Provider);
+                    var isAdded = installItems.Any(item => item.Data.Match.Library == node.Item.Data.Match.Library);
+
+                    if (!isAdded && isRemote)
+                    {
+                        installItems.Add(node.Item);
+                    }
+                });
             }
-
-            //foreach (var g in graphs)
-            //{
-            //    g.TryResolveConflicts();
-            //}
-
-            // TODO: Do stuff here
-            //foreach (var item in graphs)
-            //{
-            //    installItems.AddRange(item.InstallItems);
-            //    foreach (var missing in item.MissingItems)
-            //    {
-            //        Reports.WriteError(string.Format("Unable to locate {0} {1}", missing.Name.Red().Bold(), missing.VersionRange));
-            //        success = false;
-            //        missingItems.Add(missing);
-            //    }
-            //}
-
-            //ForEach(graphs, node =>
-            //{
-            //    if (node == null || node.LibraryRange == null)
-            //    {
-            //        return;
-            //    }
-
-            //    if (node.Item == null || node.Item.Match == null)
-            //    {
-            //        if (!node.LibraryRange.IsGacOrFrameworkReference &&
-            //             node.LibraryRange.VersionRange != null &&
-            //             missingItems.Add(node.LibraryRange))
-            //        {
-            //            Reports.WriteError(string.Format("Unable to locate {0} {1}", node.LibraryRange.Name.Red().Bold(), node.LibraryRange.VersionRange));
-            //            success = false;
-            //        }
-
-            //        return;
-            //    }
-
-            //    var isRemote = remoteProviders.Contains(node.Item.Match.Provider);
-            //    var isAdded = installItems.Any(item => item.Match.Library == node.Item.Match.Library);
-
-            //    if (!isAdded && isRemote)
-            //    {
-            //        installItems.Add(node.Item);
-            //    }
-            //});
 
             await InstallPackages(installItems, packagesDirectory, packageFilter: (library, nupkgSHA) => true);
 

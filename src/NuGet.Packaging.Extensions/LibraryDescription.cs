@@ -14,5 +14,10 @@ namespace NuGet.Packaging.Extensions
         public bool Resolved { get; set; } = true;
 
         public string Path { get; set; }
+
+        public override string ToString()
+        {
+            return Identity?.ToString() ?? LibraryRange?.ToString();
+        }
     }
 }

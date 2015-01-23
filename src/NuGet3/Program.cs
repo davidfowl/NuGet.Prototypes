@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using Microsoft.Framework.Runtime.Common.CommandLine;
 
@@ -20,6 +21,21 @@ namespace NuGet3
             {
                 app.ShowHelp();
                 return 2;
+            });
+
+            app.Command("dump", c =>
+            {
+                c.Description = "Copies relevant dependencies to target folder";
+                var projectArg = c.Argument("[root]", "Path to a project.json");
+
+                c.OnExecute(() =>
+                {
+                    var command = new DumpCommand();
+                    command.Logger = new AnsiConsoleLogger(false, false);
+                    command.ProjectFile = projectArg.Value ?? Directory.GetCurrentDirectory();
+
+                    return command.Execute() ? 0 : 1;
+                });
             });
 
             app.Command("restore", c =>

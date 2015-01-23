@@ -26,6 +26,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.DependencyResolver", 
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.MSBuild", "src\NuGet.MSBuild\NuGet.MSBuild.kproj", "{85872630-B8AD-43A3-BD85-9FAD0FFC3B56}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.ContentModel", "src\NuGet.ContentModel\NuGet.ContentModel.xproj", "{6CA365CF-221D-4E7A-99B2-162AAC486D24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{85872630-B8AD-43A3-BD85-9FAD0FFC3B56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85872630-B8AD-43A3-BD85-9FAD0FFC3B56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85872630-B8AD-43A3-BD85-9FAD0FFC3B56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CA365CF-221D-4E7A-99B2-162AAC486D24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CA365CF-221D-4E7A-99B2-162AAC486D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CA365CF-221D-4E7A-99B2-162AAC486D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CA365CF-221D-4E7A-99B2-162AAC486D24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,5 +83,6 @@ Global
 		{98BEE375-A5A0-4FC2-9B7A-25DB41C8045D} = {CE128646-AF7A-4881-A481-87077991FAAB}
 		{BFB15683-853F-402A-890D-55ABE7DC0D53} = {CE128646-AF7A-4881-A481-87077991FAAB}
 		{85872630-B8AD-43A3-BD85-9FAD0FFC3B56} = {CE128646-AF7A-4881-A481-87077991FAAB}
+		{6CA365CF-221D-4E7A-99B2-162AAC486D24} = {CE128646-AF7A-4881-A481-87077991FAAB}
 	EndGlobalSection
 EndGlobal

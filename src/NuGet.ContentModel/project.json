@@ -1,12 +1,14 @@
 ﻿{
     "version": "1.0.0-*",
     "dependencies": {
-        "NuGet.Versioning": "1.0.6-master-50140849"
+
     },
 
     "frameworks": {
         "aspnet50": {
-            "dependencies": {
+            "frameworkAssemblies": {
+                "System.Xml": "",
+                "System.Xml.Linq": ""
             }
         }
     }

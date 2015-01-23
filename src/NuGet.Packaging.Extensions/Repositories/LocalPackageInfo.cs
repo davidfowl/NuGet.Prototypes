@@ -21,5 +21,10 @@ namespace NuGet.Repositories
         public string ManifestPath { get; }
 
         public string ZipPath { get; }
+
+        public override string ToString()
+        {
+            return Id + " " + Version + " (" + (ManifestPath ?? ZipPath) + ")";
+        }
     }
 }
