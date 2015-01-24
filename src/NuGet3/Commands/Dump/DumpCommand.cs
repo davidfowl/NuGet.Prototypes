@@ -46,7 +46,7 @@ namespace NuGet3
 
             var walker = new DependencyWalker(providers);
 
-            var name = project.GetPropertyValue("AssemblyName");
+            var name = project.GetPropertyValue("ProjectGuid");
             var targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
             var version = new NuGetVersion(new Version());
 

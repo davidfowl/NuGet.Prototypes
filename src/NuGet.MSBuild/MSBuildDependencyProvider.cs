@@ -28,7 +28,7 @@ namespace NuGet.MSBuild
                 return null;
             }
 
-            var project = _projectCollection.LoadedProjects.FirstOrDefault(p => string.Equals(p.GetPropertyValue("AssemblyName"), libraryRange.Name));
+            var project = _projectCollection.LoadedProjects.FirstOrDefault(p => string.Equals(p.GetPropertyValue("ProjectGuid"), libraryRange.Name));
 
             if (project == null)
             {
@@ -51,7 +51,7 @@ namespace NuGet.MSBuild
                 {
                     LibraryRange = new LibraryRange
                     {
-                        Name = referencedProjectInstance.GetPropertyValue("AssemblyName"),
+                        Name = referencedProjectInstance.GetPropertyValue("ProjectGuid"),
                         VersionRange = new NuGetVersionRange(new NuGetVersion(new Version(1, 0)))
                     },
                 });
