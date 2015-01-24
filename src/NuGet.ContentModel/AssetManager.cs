@@ -1,35 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
 namespace NuGet.ContentModel
 {
     public static class AssetManager
     {
-        public static IEnumerable<Asset> GetPackageAssets(string packageDirectory)
+        public static IEnumerable<Asset> GetPackageAssets(string manifestPath)
         {
-            var specFile = Directory.EnumerateFiles(packageDirectory, "*.nuspec.new").FirstOrDefault();
+            var spec = XDocument.Load(manifestPath);
 
-            if (string.IsNullOrEmpty(specFile))
+            var contentsElement = spec.Root.Element("contents");
+
+            if (contentsElement == null)
             {
-                return GetContentItemsFromDisk(packageDirectory);
+                return GetContentItemsFromDisk(Path.GetDirectoryName(manifestPath));
             }
-            else
-            {
-                var spec = XDocument.Load(specFile);
 
-                var contents = spec.Descendants().Where(e => e.Name.LocalName == "content")
-                                .Select(e => new Asset
-                                {
-                                    Path = e.Attribute("path").Value,
-                                    Link = e.Attribute("link")?.Value
-                                });
+            var contents = contentsElement.Elements()
+                            .Select(e => new Asset
+                            {
+                                Path = e.Attribute("path").Value,
+                                Link = e.Attribute("link")?.Value
+                            });
 
-                return contents;
-            }
+            return contents;
         }
 
         private static IEnumerable<Asset> GetContentItemsFromDisk(string packageDirectory)
@@ -57,6 +53,7 @@ namespace NuGet.ContentModel
             {
                 return path;
             }
+
             return path + Path.DirectorySeparatorChar;
         }
     }

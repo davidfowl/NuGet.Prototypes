@@ -17,7 +17,12 @@ namespace NuGet.Packaging.Extensions
 
         public override string ToString()
         {
-            return Identity?.ToString() ?? LibraryRange?.ToString();
+            if (Identity == null)
+            {
+                return LibraryRange?.ToString();
+            }
+
+            return Identity + " (" + LibraryRange + ")";
         }
     }
 }

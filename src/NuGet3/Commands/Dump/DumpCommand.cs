@@ -50,7 +50,7 @@ namespace NuGet3
             var targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
             var version = new NuGetVersion(new Version());
 
-            var searchCriteria = GetPropertyDefinition(targetFramework);
+            var searchCriteria = GetSelectionCriteria(targetFramework);
 
             // This is so that we have a unique cache per target framework
             var root = walker.Walk(name, version, targetFramework);
@@ -123,22 +123,26 @@ namespace NuGet3
             return true;
         }
 
-        private SelectionCriteria GetPropertyDefinition(NuGetFramework projectFramework)
+        private SelectionCriteria GetSelectionCriteria(NuGetFramework projectFramework)
         {
             // This API isn't great but it allows you the client to build up search criteria
             // based on patterns inside of the package
 
-            // TODO: Handle tpms
+            var criteria = new SelectionCriteria();
+            var entry = new SelectionCriteriaEntry();
 
-            return new SelectionCriteriaBuilder(Patterns.Properties.Definitions)
-                .Add["tfm", projectFramework]["tpm", null]
-                .Criteria;
+            entry.Properties["tfm"] = projectFramework;
+            entry.Properties["tpm"] = null;
+
+            criteria.Entries.Add(entry);
+
+            return criteria;
         }
 
         private void DumpPackageContents(LibraryDescription library, SelectionCriteria criteria)
         {
             var packageContents = new ContentItemCollection();
-            packageContents.Load(Path.GetDirectoryName(library.Path));
+            packageContents.Load(library.Path);
 
             var group = packageContents.FindBestItemGroup(criteria, Patterns.ManagedAssemblies);
 

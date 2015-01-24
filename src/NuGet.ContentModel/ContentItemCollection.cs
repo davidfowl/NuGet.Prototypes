@@ -8,9 +8,9 @@ namespace NuGet.ContentModel
     {
         private IEnumerable<Asset> _assets;
 
-        public void Load(string packageDirectory)
+        public void Load(string manifestPath)
         {
-            _assets = AssetManager.GetPackageAssets(packageDirectory).SelectMany(ContractBecomesRef).ToList();
+            _assets = AssetManager.GetPackageAssets(manifestPath).SelectMany(ContractBecomesRef).ToList();
         }
 
         private IEnumerable<Asset> ContractBecomesRef(Asset asset)
