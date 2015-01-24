@@ -4,10 +4,8 @@
     "dependencies": {
     },
 
-    "frameworks" : {
-        "aspnet50" : { 
-            "dependencies": {
-            }
-        }
+    "frameworks": {
+        "net45": { },
+        "aspnet50": { }
     }
 }

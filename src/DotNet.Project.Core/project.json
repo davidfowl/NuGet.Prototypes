@@ -7,9 +7,12 @@
     },
 
     "frameworks": {
+        "net45": {
+            "frameworkAssemblies": {
+                "System.Runtime": ""
+            }
+        },
         "aspnet50": {
-            "dependencies": {
-            },
             "frameworkAssemblies": {
                 "System.Runtime": "4.0.20.0"
             }

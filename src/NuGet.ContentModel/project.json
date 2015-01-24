@@ -5,6 +5,12 @@
     },
 
     "frameworks": {
+        "net45": {
+            "frameworkAssemblies": {
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        },
         "aspnet50": {
             "frameworkAssemblies": {
                 "System.Xml": "",

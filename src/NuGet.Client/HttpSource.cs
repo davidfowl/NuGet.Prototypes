@@ -42,7 +42,7 @@ namespace NuGet.Client
             var proxy = Environment.GetEnvironmentVariable("http_proxy");
             if (string.IsNullOrEmpty(proxy))
             {
-#if ASPNET50
+#if ASPNET50 || NET45
                 _client = new HttpClient();
 #else
                 _client = new HttpClient(new Microsoft.Net.Http.Client.ManagedHandler());
@@ -53,7 +53,7 @@ namespace NuGet.Client
                 // To use an authenticated proxy, the proxy address should be in the form of
                 // "http://user:password@proxyaddress.com:8888"
                 var proxyUriBuilder = new UriBuilder(proxy);
-#if ASPNET50
+#if ASPNET50 || NET45
                 var webProxy = new WebProxy(proxy);
                 if (string.IsNullOrEmpty(proxyUriBuilder.UserName))
                 {

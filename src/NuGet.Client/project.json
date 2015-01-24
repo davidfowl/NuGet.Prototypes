@@ -6,14 +6,23 @@
         "NuGet.Common": { "version": "1.0.0-*", "type": "build" }
     },
 
-    "frameworks" : {
-        "aspnet50" : { 
+    "frameworks": {
+        "net45" : { 
             "frameworkAssemblies": {
-                "System.Runtime": "4.0.20.0",
-                "System.IO.Compression": "4.0.0.0",
-                "System.Net.Http": "4.0.0.0",
-                "System.Xml": "4.0.0.0",
-                "System.Xml.Linq": "4.0.0.0"
+                "System.Runtime": "",
+                "System.IO.Compression": "",
+                "System.Net.Http": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        },
+        "aspnet50": {
+            "frameworkAssemblies": {
+                "System.Runtime": "",
+                "System.IO.Compression": "",
+                "System.Net.Http": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
             }
         }
     }

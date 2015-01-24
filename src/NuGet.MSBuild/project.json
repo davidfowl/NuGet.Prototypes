@@ -6,7 +6,7 @@
     },
 
     "frameworks": {
-        "aspnet50": {
+        "net45": {
             "frameworkAssemblies": {
                 "System.Globalization": "",
                 "Microsoft.Build": "",

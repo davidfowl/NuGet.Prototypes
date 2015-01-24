@@ -5,9 +5,7 @@
     },
 
     "frameworks": {
-        "aspnet50": {
-            "dependencies": {
-            }
-        }
+        "net45": { },
+        "aspnet50": { }
     }
 }
