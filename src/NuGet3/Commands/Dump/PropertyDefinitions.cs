@@ -52,12 +52,12 @@ namespace NuGet3
         {
             Table =
                 {
-                    { "aspnet50", new FrameworkName("ASP.NET,Version=5.0") },
-                    { "aspnetcore50", new FrameworkName("ASP.NETCore,Version=5.0") },
-                    { "any", new FrameworkName("ContractBased,Version=1.0") },
-                    { "monoandroid", new FrameworkName("MonoAndroid,Version=0.0") },
-                    { "monotouch", new FrameworkName("MonoTouch,Version=0.0") },
-                    { "monomac", new FrameworkName("MonoMac,Version=0.0") },
+                    { "aspnet50", "ASP.NET,Version=5.0" },
+                    { "aspnetcore50", "ASP.NETCore,Version=5.0" },
+                    { "any", "ContractBased,Version=1.0" },
+                    { "monoandroid", "MonoAndroid,Version=0.0" },
+                    { "monotouch", "MonoTouch,Version=0.0" },
+                    { "monomac", "MonoMac,Version=0.0" },
                 },
             Parser = TargetFrameworkName_Parser,
             OnIsCriteriaSatisfied = TargetFrameworkName_IsCriteriaSatisfied
@@ -121,26 +121,31 @@ namespace NuGet3
 
         internal static object TargetFrameworkName_Parser(string name)
         {
+            if (name.Contains("/"))
+            {
+                return null;
+            }
+
             var result = NuGetFramework.Parse(name);
 
             if (result != NuGetFramework.UnsupportedFramework)
             {
-                return result;
+                return result.ToString();
             }
 
-            return new NuGetFramework(name, new Version());
+            return null;
         }
 
         internal static bool TargetFrameworkName_IsCriteriaSatisfied(object criteria, object available)
         {
-            var criteriaFrameworkName = criteria as NuGetFramework;
-            var availableFrameworkName = available as NuGetFramework;
-            
+            var criteriaFrameworkName = NuGetFramework.Parse((string)criteria);
+            var availableFrameworkName = NuGetFramework.Parse((string)available);
+
             if (criteriaFrameworkName != null && availableFrameworkName != null)
             {
                 return DefaultCompatibilityProvider.Instance.IsCompatible(criteriaFrameworkName, availableFrameworkName);
             }
-            
+
             return false;
         }
 

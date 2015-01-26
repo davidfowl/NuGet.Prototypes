@@ -47,13 +47,13 @@ namespace NuGet3
             var walker = new DependencyWalker(providers);
 
             var name = project.GetPropertyValue("ProjectGuid");
-            var targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
+            var targetFramework = project.GetPropertyValue("TargetFrameworkMoniker");
             var version = new NuGetVersion(new Version());
 
             var searchCriteria = GetSelectionCriteria(targetFramework);
 
             // This is so that we have a unique cache per target framework
-            var root = walker.Walk(name, version, targetFramework);
+            var root = walker.Walk(name, version, NuGetFramework.Parse(targetFramework));
 
             Logger.WriteInformation("Unresolved closure".Yellow());
 
@@ -123,7 +123,7 @@ namespace NuGet3
             return true;
         }
 
-        private SelectionCriteria GetSelectionCriteria(NuGetFramework projectFramework)
+        private SelectionCriteria GetSelectionCriteria(string projectFramework)
         {
             // This API isn't great but it allows you the client to build up search criteria
             // based on patterns inside of the package
