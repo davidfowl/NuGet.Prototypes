@@ -176,9 +176,23 @@ namespace NuGet.ProjectModel
 
         private JProperty WritePackageDependency(PackageDependency item)
         {
+            string versionRange = null;
+
+            if (item.VersionRange != null)
+            {
+                if (item.VersionRange.IsMinInclusive && item.VersionRange.MaxVersion == null)
+                {
+                    versionRange = item.VersionRange.MinVersion.ToString();
+                }
+                else
+                {
+                    versionRange = item.VersionRange.ToString();
+                }
+            }
+
             return new JProperty(
                 item.Id,
-                WriteString(item.VersionRange?.ToString()));
+                WriteString(versionRange));
         }
 
         private IEnumerable<FrameworkSpecificGroup> ReadFrameworkAssemblyReference(string property, JToken json)
