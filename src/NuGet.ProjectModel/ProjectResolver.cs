@@ -54,7 +54,7 @@ namespace NuGet.ProjectModel
 
             if (GlobalSettings.TryGetGlobalSettings(rootPath, out global))
             {
-                foreach (var sourcePath in global.SourcePaths)
+                foreach (var sourcePath in global.ProjectPaths)
                 {
                     paths.Add(Path.Combine(rootPath, sourcePath));
                 }

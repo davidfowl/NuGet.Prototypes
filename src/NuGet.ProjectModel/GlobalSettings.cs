@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
-using NuGet.Packaging.Extensions;
 
 namespace NuGet.ProjectModel
 {
@@ -12,7 +11,7 @@ namespace NuGet.ProjectModel
     {
         public const string GlobalFileName = "global.json";
 
-        public IList<string> SourcePaths { get; private set; }
+        public IList<string> ProjectPaths { get; private set; }
         public string PackagesPath { get; private set; }
         public string FilePath { get; private set; }
 
@@ -43,7 +42,7 @@ namespace NuGet.ProjectModel
             var sources = settings["sources"];
             var dependencies = settings["dependencies"] as JObject;
 
-            globalSettings.SourcePaths = sources == null ? new string[] { } : sources.ToObject<string[]>();
+            globalSettings.ProjectPaths = sources == null ? new string[] { } : sources.ToObject<string[]>();
             globalSettings.PackagesPath = settings.Value<string>("packages");
             globalSettings.FilePath = globalJsonPath;
 
