@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public class TypeInformation
     {

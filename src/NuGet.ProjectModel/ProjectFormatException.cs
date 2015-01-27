@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public sealed class ProjectFormatException : Exception
     {

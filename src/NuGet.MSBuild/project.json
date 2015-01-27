@@ -1,7 +1,7 @@
 ﻿{
     "version": "1.0.0-*",
     "dependencies": {
-        "DotNet.Project.Core": "1.0.0-*",
+        "NuGet.ProjectModel": "1.0.0-*",
         "NuGet.DependencyResolver": "1.0.0-*"
     },
 

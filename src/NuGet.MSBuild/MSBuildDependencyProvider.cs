@@ -8,7 +8,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
-using NuGetProject = Microsoft.Framework.Runtime.Project;
+using NuGetProject = NuGet.ProjectModel.Project;
 
 namespace NuGet.MSBuild
 {

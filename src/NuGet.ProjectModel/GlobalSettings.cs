@@ -6,7 +6,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Extensions;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public class GlobalSettings
     {

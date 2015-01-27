@@ -52,12 +52,12 @@ namespace NuGet3
         {
             Table =
                 {
-                    { "aspnet50", "ASP.NET,Version=5.0" },
-                    { "aspnetcore50", "ASP.NETCore,Version=5.0" },
-                    { "any", "ContractBased,Version=1.0" },
-                    { "monoandroid", "MonoAndroid,Version=0.0" },
-                    { "monotouch", "MonoTouch,Version=0.0" },
-                    { "monomac", "MonoMac,Version=0.0" },
+                    { "aspnet50", new NuGetFramework("ASP.NET,Version=5.0") },
+                    { "aspnetcore50", new NuGetFramework("ASP.NETCore,Version=5.0") },
+                    { "any", new NuGetFramework("ContractBased,Version=1.0") },
+                    { "monoandroid", new NuGetFramework("MonoAndroid,Version=0.0") },
+                    { "monotouch", new NuGetFramework("MonoTouch,Version=0.0") },
+                    { "monomac", new NuGetFramework("MonoMac,Version=0.0") },
                 },
             Parser = TargetFrameworkName_Parser,
             OnIsCriteriaSatisfied = TargetFrameworkName_IsCriteriaSatisfied
@@ -130,7 +130,7 @@ namespace NuGet3
 
             if (result != NuGetFramework.UnsupportedFramework)
             {
-                return result.ToString();
+                return result;
             }
 
             return null;
@@ -138,8 +138,8 @@ namespace NuGet3
 
         internal static bool TargetFrameworkName_IsCriteriaSatisfied(object criteria, object available)
         {
-            var criteriaFrameworkName = NuGetFramework.Parse((string)criteria);
-            var availableFrameworkName = NuGetFramework.Parse((string)available);
+            var criteriaFrameworkName = criteria as NuGetFramework;
+            var availableFrameworkName = available as NuGetFramework;
 
             if (criteriaFrameworkName != null && availableFrameworkName != null)
             {

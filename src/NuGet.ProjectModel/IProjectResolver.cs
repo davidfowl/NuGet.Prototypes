@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public interface IProjectResolver
     {

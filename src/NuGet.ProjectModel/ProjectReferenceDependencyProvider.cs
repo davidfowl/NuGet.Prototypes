@@ -10,7 +10,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
 using NuGet.Packaging.Extensions.Frameworks;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public class ProjectReferenceDependencyProvider : IDependencyProvider
     {
@@ -87,14 +87,7 @@ namespace Microsoft.Framework.Runtime
             }
 
             var dependencies = project.Dependencies.Concat(targetFrameworkDependencies).ToList();
-
-            var loadableAssemblies = new List<string>();
-
-            if (project.IsLoadable)
-            {
-                loadableAssemblies.Add(project.Name);
-            }
-
+            
             // Mark the library as unresolved if there were specified frameworks
             // and none of them resolved
             bool unresolved = targetFrameworkInfo.FrameworkName == null &&

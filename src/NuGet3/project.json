@@ -2,8 +2,8 @@
     "version": "1.0.0-*",
     "compilationOptions": { "warningsAsErrors": true },
     "dependencies": {
-        "DotNet.Project.Core": "1.0.0-*",
-        "NuGet.Configuration": "1.0.0-master-50130044",
+        "NuGet.ProjectModel": "1.0.0-*",
+        "NuGet.Configuration": "1.0.0-*",
         "NuGet.Packaging.Extensions": "1.0.0-*",
         "NuGet.Client": "1.0.0-*",
         "NuGet.Common": { "version": "1.0.0-*", "type": "build" },

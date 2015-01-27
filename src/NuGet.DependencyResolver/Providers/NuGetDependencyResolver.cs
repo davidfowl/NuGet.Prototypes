@@ -89,7 +89,7 @@ namespace NuGet.DependencyResolver
             //}
 
             var frameworks = nuspecReader.GetFrameworkReferenceGroups()
-                                         .ToDictionary(f => new NuGetFramework(f.TargetFramework),
+                                         .ToDictionary(f => f.TargetFramework,
                                                        f => f.Items);
 
             nearest = reducer.GetNearest(targetFramework, frameworks.Keys) ?? frameworks.Keys.FirstOrDefault(f => f.AnyPlatform);

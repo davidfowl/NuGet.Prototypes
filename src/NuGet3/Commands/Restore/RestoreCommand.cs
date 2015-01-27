@@ -18,8 +18,9 @@ using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.MSBuild;
 using NuGet.Packaging.Extensions;
+using NuGet.ProjectModel;
 using NuGet.Versioning;
-using NuGetProject = Microsoft.Framework.Runtime.Project;
+using NuGetProject = NuGet.ProjectModel.Project;
 
 namespace NuGet3
 {

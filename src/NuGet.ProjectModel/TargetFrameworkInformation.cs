@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
 
-namespace Microsoft.Framework.Runtime
+namespace NuGet.ProjectModel
 {
     public class TargetFrameworkInformation
     {

@@ -1,7 +1,7 @@
 ﻿{
     "version": "1.0.0-*",
     "dependencies": {
-        "NuGet.Versioning": "1.0.6-master-50140849"
+        "NuGet.Versioning": "1.0.6-*"
     },
 
     "frameworks": {
