@@ -91,7 +91,7 @@ namespace NuGet.ProjectModel
             // Mark the library as unresolved if there were specified frameworks
             // and none of them resolved
             bool unresolved = targetFrameworkInfo.FrameworkName == null &&
-                              project.GetTargetFrameworks().Any();
+                              project.TargetFrameworks.Any();
 
             return new LibraryDescription
             {

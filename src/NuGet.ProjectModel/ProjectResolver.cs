@@ -34,7 +34,7 @@ namespace NuGet.ProjectModel
             {
                 var projectPath = Path.Combine(searchPath, name);
 
-                if (Project.TryGetProject(projectPath, out project))
+                if (ProjectReader.TryReadProject(projectPath, out project))
                 {
                     return true;
                 }

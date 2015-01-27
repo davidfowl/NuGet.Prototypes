@@ -137,7 +137,7 @@ namespace NuGet3
             sw.Start();
 
             NuGetProject project;
-            if (!NuGetProject.TryGetProject(projectJsonPath, out project))
+            if (!ProjectReader.TryReadProject(projectJsonPath, out project))
             {
                 throw new Exception("Unable to locate project.json");
             }
@@ -205,7 +205,7 @@ namespace NuGet3
             }
             else
             {
-                foreach (var framework in project.GetTargetFrameworks())
+                foreach (var framework in project.TargetFrameworks)
                 {
                     tasks.Add(remoteWalker.Walk(project.Name, project.Version, framework.FrameworkName));
                 }

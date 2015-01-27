@@ -13,7 +13,6 @@ namespace NuGet.ProjectModel
         public const string GlobalFileName = "global.json";
 
         public IList<string> SourcePaths { get; private set; }
-        public IDictionary<Library, string> PackageHashes { get; private set; }
         public string PackagesPath { get; private set; }
         public string FilePath { get; private set; }
 

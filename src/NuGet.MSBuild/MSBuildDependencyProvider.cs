@@ -6,6 +6,7 @@ using Microsoft.Build.Evaluation;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.Packaging.Extensions;
+using NuGet.ProjectModel;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 using NuGetProject = NuGet.ProjectModel.Project;
@@ -60,7 +61,7 @@ namespace NuGet.MSBuild
             NuGetProject nugetProject;
             var projectDirectory = Path.GetDirectoryName(project.ProjectFileLocation.File);
 
-            if (NuGetProject.TryGetProject(projectDirectory, out nugetProject))
+            if (ProjectReader.TryReadProject(projectDirectory, out nugetProject))
             {
                 // Grab dependencies from here too
                 var targetFrameworkInfo = nugetProject.GetTargetFramework(targetFramework);

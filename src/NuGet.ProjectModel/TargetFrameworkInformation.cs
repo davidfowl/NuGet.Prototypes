@@ -13,10 +13,9 @@ namespace NuGet.ProjectModel
 
         public IList<LibraryDependency> Dependencies { get; set; }
 
-        public string WrappedProject { get; set; }
-
-        public string AssemblyPath { get; set; }
-
-        public string PdbPath { get; set; }
+        public TargetFrameworkInformation()
+        {
+            Dependencies = new List<LibraryDependency>();
+        }
     }
 }
