@@ -17,6 +17,11 @@ namespace NuGet.DependencyResolver
     {
         private readonly NuGetv3LocalRepository _repository;
 
+        public NuGetDependencyResolver(NuGetv3LocalRepository repository)
+        {
+            _repository = repository;
+        }
+
         public NuGetDependencyResolver(string packagesPath)
         {
             _repository = new NuGetv3LocalRepository(packagesPath, checkPackageIdCase: false);

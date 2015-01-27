@@ -17,8 +17,10 @@ using NuGet.Configuration;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.MSBuild;
+using NuGet.Packaging;
 using NuGet.Packaging.Extensions;
 using NuGet.ProjectModel;
+using NuGet.Repositories;
 using NuGet.Versioning;
 using NuGetProject = NuGet.ProjectModel.Project;
 
@@ -143,6 +145,7 @@ namespace NuGet3
             }
 
             var projectDirectory = project.ProjectDirectory;
+            var projectLockFilePath = Path.Combine(projectDirectory, LockFileFormat.LockFileName);
 
             var properties = new Dictionary<string, string>
             {
@@ -170,6 +173,8 @@ namespace NuGet3
 
             var context = new RemoteWalkContext();
 
+            var nugetRepository = new NuGetv3LocalRepository(packagesDirectory, checkPackageIdCase: true);
+
             context.ProjectLibraryProviders.Add(new LocalDependencyProvider(
                 new MSBuildDependencyProvider(projectCollection)));
 
@@ -182,8 +187,7 @@ namespace NuGet3
 
             context.LocalLibraryProviders.Add(
                 new LocalDependencyProvider(
-                    new NuGetDependencyResolver(
-                        packagesDirectory)));
+                    new NuGetDependencyResolver(nugetRepository)));
 
             var effectiveSources = PackageSourceUtils.GetEffectivePackageSources(SourceProvider,
                 Sources, FallbackSources);
@@ -215,6 +219,7 @@ namespace NuGet3
 
             Logger.WriteInformation(string.Format("{0}, {1}ms elapsed", "Resolving complete".Green(), sw.ElapsedMilliseconds));
 
+            var libraries = new HashSet<Library>();
             var installItems = new List<GraphItem<RemoteResolveResult>>();
             var missingItems = new HashSet<LibraryRange>();
 
@@ -228,7 +233,7 @@ namespace NuGet3
                     {
                         return;
                     }
-                    
+
                     if (node.Item == null || node.Item.Data.Match == null)
                     {
                         if (!node.Key.IsGacOrFrameworkReference &&
@@ -249,10 +254,18 @@ namespace NuGet3
                     {
                         installItems.Add(node.Item);
                     }
+
+                    libraries.Add(node.Item.Key);
                 });
             }
 
             await InstallPackages(installItems, packagesDirectory, packageFilter: (library, nupkgSHA) => true);
+
+            if (success)
+            {
+                Logger.WriteInformation(string.Format("Writing lock file {0}", projectLockFilePath.White().Bold()));
+                WriteLockFile(projectLockFilePath, libraries, nugetRepository);
+            }
 
             //if (!ScriptExecutor.Execute(project, "postrestore", getVariable))
             //{
@@ -274,6 +287,43 @@ namespace NuGet3
             //}
 
             return success;
+        }
+
+        private void WriteLockFile(string projectLockFilePath, HashSet<Library> graphItems, NuGetv3LocalRepository repository)
+        {
+            var excludes = new[] { ".nuspec", ".nupkg", ".sha512" };
+
+            var lockFile = new LockFile();
+            lockFile.Islocked = false;
+            foreach (var item in graphItems.OrderBy(x => x.Name))
+            {
+                var package = repository.FindPackagesById(item.Name).FirstOrDefault(p => p.Version == item.Version);
+
+                if (package != null)
+                {
+                    NuspecReader nuspecReader = null;
+                    using (var stream = File.OpenRead(package.ManifestPath))
+                    {
+                        nuspecReader = new NuspecReader(stream);
+                    }
+
+                    var library = new LockFileLibrary();
+                    library.Name = item.Name;
+                    library.Version = item.Version;
+                    library.FrameworkReferenceGroups = nuspecReader.GetFrameworkReferenceGroups().ToList();
+                    library.ReferenceGroups = nuspecReader.GetReferenceGroups().ToList();
+                    library.DependencyGroups = nuspecReader.GetDependencyGroups().ToList();
+                    library.Files = Directory.EnumerateFiles(package.ExpandedPath, "*.*", SearchOption.AllDirectories)
+                                        .Where(path => !excludes.Contains(Path.GetExtension(path)))
+                                        .Select(path => path.Substring(package.ExpandedPath.Length).TrimStart(Path.DirectorySeparatorChar).Replace(Path.DirectorySeparatorChar, '/'))
+                                        .ToList();
+
+                    lockFile.Libraries.Add(library);
+                }
+            }
+
+            var lockFileFormat = new LockFileFormat();
+            lockFileFormat.Write(projectLockFilePath, lockFile);
         }
 
         //private async Task<bool> RestoreFromGlobalJson(string rootDirectory, string packagesDirectory)

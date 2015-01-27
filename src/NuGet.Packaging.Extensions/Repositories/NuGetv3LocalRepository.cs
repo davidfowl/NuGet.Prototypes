@@ -58,7 +58,7 @@ namespace NuGet.Repositories
                     if (_checkPackageIdCase)
                     {
                         var manifestFileName = Path.GetFileName(
-                            Directory.EnumerateDirectories(fullVersionDir, "*.nuspec")
+                            Directory.EnumerateFiles(fullVersionDir, "*.nuspec")
                                     .FirstOrDefault());
 
                         if (string.IsNullOrEmpty(manifestFileName))

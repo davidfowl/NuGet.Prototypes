@@ -1,0 +1,75 @@
+{
+  "locked": false,
+  "version": 1,
+  "libraries": {
+    "Microsoft.Framework.CommandLineUtils/1.0.0-beta2": {
+      "dependencySets": {
+        "Asp.NetCore5.0": {
+          "System.Collections": "[4.0.10-beta-22416, )",
+          "System.Runtime": "[4.0.20-beta-22416, )"
+        }
+      },
+      "frameworkAssemblies": {
+        "ASP.NET, Version=v5.0": [
+          "mscorlib",
+          "System",
+          "System.Core",
+          "Microsoft.CSharp"
+        ]
+      },
+      "contents": {
+        "lib/aspnet50/Microsoft.Framework.CommandLineUtils.dll": {},
+        "lib/aspnet50/Microsoft.Framework.CommandLineUtils.xml": {},
+        "lib/aspnetcore50/Microsoft.Framework.CommandLineUtils.dll": {},
+        "lib/aspnetcore50/Microsoft.Framework.CommandLineUtils.xml": {},
+        "shared/AnsiConsole.cs": {},
+        "shared/CommandArgument.cs": {},
+        "shared/CommandLineApplication.cs": {},
+        "shared/CommandOption.cs": {},
+        "shared/CommandOptionType.cs": {}
+      }
+    },
+    "Newtonsoft.Json/6.0.6": {
+      "contents": {
+        "lib/net20/Newtonsoft.Json.dll": {},
+        "lib/net20/Newtonsoft.Json.xml": {},
+        "lib/net35/Newtonsoft.Json.dll": {},
+        "lib/net35/Newtonsoft.Json.xml": {},
+        "lib/net40/Newtonsoft.Json.dll": {},
+        "lib/net40/Newtonsoft.Json.xml": {},
+        "lib/net45/Newtonsoft.Json.dll": {},
+        "lib/net45/Newtonsoft.Json.xml": {},
+        "lib/netcore45/Newtonsoft.Json.dll": {},
+        "lib/netcore45/Newtonsoft.Json.xml": {},
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll": {},
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml": {},
+        "lib/portable-net45+wp80+win8+wpa81+aspnetcore50/Newtonsoft.Json.dll": {},
+        "lib/portable-net45+wp80+win8+wpa81+aspnetcore50/Newtonsoft.Json.xml": {},
+        "tools/install.ps1": {}
+      }
+    },
+    "NuGet.Configuration/1.0.0-pre-20150121001901": {
+      "contents": {
+        "lib/net45/NuGet.Configuration.dll": {}
+      }
+    },
+    "NuGet.Packaging/1.0.0-pre-20150127085617": {
+      "contents": {
+        "lib/net45/NuGet.Frameworks.dll": {},
+        "lib/net45/NuGet.Frameworks.XML": {},
+        "lib/net45/NuGet.Packaging.dll": {},
+        "lib/net45/NuGet.Packaging.XML": {},
+        "lib/net45/NuGet.PackagingCore.dll": {},
+        "lib/net45/NuGet.PackagingCore.XML": {},
+        "lib/net45/NuGet.Resolver.dll": {},
+        "lib/net45/NuGet.Resolver.XML": {}
+      }
+    },
+    "NuGet.Versioning/1.0.6": {
+      "contents": {
+        "lib/portable-net40+win/NuGet.Versioning.dll": {},
+        "lib/portable-net40+win/NuGet.Versioning.XML": {}
+      }
+    }
+  }
+}
