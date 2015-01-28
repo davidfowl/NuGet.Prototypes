@@ -23,6 +23,15 @@ namespace NuGet3
                 return 2;
             });
 
+            app.Command("pack", c =>
+            {
+                c.OnExecute(() =>
+                {
+                    var command = new PackCommand();
+                    return command.Execute() ? 0 : 1;
+                });
+            });
+
             app.Command("dump", c =>
             {
                 c.Description = "Copies relevant dependencies to target folder";

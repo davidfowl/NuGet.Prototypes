@@ -1,0 +1,25 @@
+﻿{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "NuGet.Versioning.Extensions": "1.0.0-*",
+        "NuGet.Packaging": "1.0.0-*",
+        "Newtonsoft.Json": "6.0.6"
+    },
+
+    "frameworks": {
+        "net45": {
+            "frameworkAssemblies": {
+                "System.IO.Compression": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        },
+        "aspnet50": {
+            "frameworkAssemblies": {
+                "System.IO.Compression": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        }
+    }
+}

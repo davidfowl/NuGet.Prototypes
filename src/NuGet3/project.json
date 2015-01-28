@@ -10,6 +10,7 @@
         "NuGet.DependencyResolver": "1.0.0-*",
         "NuGet.MSBuild": "1.0.0-*",
         "NuGet.ContentModel": "1.0.0-*",
+        "NuGet.Packaging.Build": "1.0.0-*",
         "Microsoft.Framework.CommandLineUtils": { "version": "1.0.0-*", "type": "build" }
     },
     "commands": {
