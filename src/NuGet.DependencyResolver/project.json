@@ -1,6 +1,7 @@
 ﻿{
     "version": "1.0.0-*",
     "dependencies": {
+        "NuGet.LibraryModel": "1.0.0-*",
         "NuGet.Packaging.Extensions": "1.0.0-*"
     },
 

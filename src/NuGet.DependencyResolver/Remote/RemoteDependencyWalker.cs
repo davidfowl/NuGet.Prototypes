@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
-using NuGet.Packaging.Extensions;
+using NuGet.LibraryModel;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 

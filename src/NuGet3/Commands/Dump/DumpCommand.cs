@@ -8,6 +8,7 @@ using NuGet.Common;
 using NuGet.ContentModel;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.MSBuild;
 using NuGet.Packaging.Extensions;
 using NuGet.Versioning;

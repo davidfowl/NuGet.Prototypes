@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Build.Evaluation;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.Packaging.Extensions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;

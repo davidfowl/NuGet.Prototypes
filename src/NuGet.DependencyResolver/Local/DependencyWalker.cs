@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using NuGet.Frameworks;
-using NuGet.Packaging.Extensions;
+using NuGet.LibraryModel;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 

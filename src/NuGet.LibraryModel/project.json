@@ -1,0 +1,16 @@
+﻿{
+    "version": "1.0.0-*",
+    "dependencies": {
+        "NuGet.Versioning.Extensions": "1.0.0-*"
+    },
+
+    "frameworks": {
+        "net45": {
+
+        },
+        "aspnet50": {
+            "dependencies": {
+            }
+        }
+    }
+}

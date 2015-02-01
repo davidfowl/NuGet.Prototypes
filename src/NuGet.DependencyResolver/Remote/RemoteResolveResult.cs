@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NuGet.LibraryModel;
 using NuGet.Packaging.Extensions;
 
 namespace NuGet.DependencyResolver

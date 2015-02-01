@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class LibraryDependencyType
     {

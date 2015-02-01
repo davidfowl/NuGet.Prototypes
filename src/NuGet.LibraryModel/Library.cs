@@ -6,7 +6,7 @@ using NuGet;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class Library : IEquatable<Library>
     {

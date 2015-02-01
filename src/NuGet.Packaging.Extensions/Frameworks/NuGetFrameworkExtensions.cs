@@ -9,6 +9,5 @@ namespace NuGet.Packaging.Extensions.Frameworks
         {
             return framework.DotNetFrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase);
         }
-
     }
 }

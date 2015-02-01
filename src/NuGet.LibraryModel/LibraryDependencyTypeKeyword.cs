@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class LibraryDependencyTypeKeyword
     {

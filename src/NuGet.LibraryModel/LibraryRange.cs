@@ -1,7 +1,7 @@
 ﻿using System;
 using NuGet.Versioning.Extensions;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class LibraryRange : IEquatable<LibraryRange>
     {

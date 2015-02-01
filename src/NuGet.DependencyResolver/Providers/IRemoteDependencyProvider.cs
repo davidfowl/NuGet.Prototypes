@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NuGet.Packaging.Extensions;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 
 namespace NuGet.DependencyResolver
 {

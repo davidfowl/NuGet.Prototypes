@@ -1,4 +1,4 @@
-﻿using NuGet.Packaging.Extensions;
+﻿using NuGet.LibraryModel;
 
 namespace NuGet.DependencyResolver
 {

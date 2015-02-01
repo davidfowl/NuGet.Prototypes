@@ -4,7 +4,7 @@
 using System.Text;
 using NuGet;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class LibraryDependency
     {

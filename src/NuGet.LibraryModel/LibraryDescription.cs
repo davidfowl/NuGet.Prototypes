@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Packaging.Extensions
+namespace NuGet.LibraryModel
 {
     public class LibraryDescription
     {

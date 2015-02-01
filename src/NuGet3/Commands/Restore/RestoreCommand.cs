@@ -16,6 +16,7 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.MSBuild;
 using NuGet.Packaging;
 using NuGet.Packaging.Extensions;

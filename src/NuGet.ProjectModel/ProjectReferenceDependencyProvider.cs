@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Versioning;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.Packaging.Extensions;
 using NuGet.Packaging.Extensions.Frameworks;
 

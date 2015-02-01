@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NuGet.Client;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.Packaging;
 using NuGet.Packaging.Extensions;
 using NuGet.Versioning.Extensions;
