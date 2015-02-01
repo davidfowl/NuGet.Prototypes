@@ -6,7 +6,6 @@ using Microsoft.Build.Evaluation;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
-using NuGet.Packaging.Extensions;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using NuGet.Versioning.Extensions;
@@ -30,7 +29,7 @@ namespace NuGet.MSBuild
                 return null;
             }
 
-            var project = _projectCollection.LoadedProjects.FirstOrDefault(p => string.Equals(p.GetPropertyValue("ProjectGuid"), libraryRange.Name));
+            var project = _projectCollection.LoadedProjects.FirstOrDefault(p => string.Equals(p.FullPath, libraryRange.Name));
 
             if (project == null)
             {
@@ -53,7 +52,7 @@ namespace NuGet.MSBuild
                 {
                     LibraryRange = new LibraryRange
                     {
-                        Name = referencedProjectInstance.GetPropertyValue("ProjectGuid"),
+                        Name = referencedProject.FullPath,
                         VersionRange = new NuGetVersionRange(new NuGetVersion(new Version(1, 0)))
                     },
                 });

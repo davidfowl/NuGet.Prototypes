@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Build.Evaluation;
 using NuGet.Client;
 using NuGet.Common;
@@ -10,7 +9,6 @@ using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.MSBuild;
-using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 
 namespace NuGet3
@@ -47,7 +45,7 @@ namespace NuGet3
 
             var walker = new DependencyWalker(providers);
 
-            var name = project.GetPropertyValue("ProjectGuid");
+            var name = project.FullPath;
             var targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
             var version = new NuGetVersion(new Version());
 

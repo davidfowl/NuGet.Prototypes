@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using NuGet.LibraryModel;
-using NuGet.Packaging.Extensions;
 using NuGet.Versioning;
 
 namespace NuGet.ProjectModel
