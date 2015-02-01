@@ -14,7 +14,7 @@ namespace NuGet.LibraryModel
 
         static LibraryDependencyType()
         {
-            Default = Parse(new[] { "default" });
+            Default = new LibraryDependencyType(LibraryDependencyTypeKeyword.Default.FlagsToAdd as LibraryDependencyTypeFlag[]);
         }
 
         public LibraryDependencyType()
