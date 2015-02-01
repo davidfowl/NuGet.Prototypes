@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace NuGet.LibraryModel
 {
@@ -85,26 +84,32 @@ namespace NuGet.LibraryModel
                 },
                 flagsToRemove: emptyFlags);
 
-            foreach (var fieldInfo in typeof(LibraryDependencyTypeFlag).GetTypeInfo().DeclaredFields)
-            {
-                if (fieldInfo.FieldType == typeof(LibraryDependencyTypeFlag))
-                {
-                    var flag = (LibraryDependencyTypeFlag)fieldInfo.GetValue(null);
-                    Declare(
-                        fieldInfo.Name,
-                        flagsToAdd: new[] { flag },
-                        flagsToRemove: emptyFlags);
-                    Declare(
-                        fieldInfo.Name + "-off",
-                        flagsToAdd: emptyFlags,
-                        flagsToRemove: new[] { flag });
-                }
-            }
+            DeclareOnOff("MainReference", LibraryDependencyTypeFlag.MainReference, emptyFlags);
+            DeclareOnOff("MainSource", LibraryDependencyTypeFlag.MainSource, emptyFlags);
+            DeclareOnOff("MainExport", LibraryDependencyTypeFlag.MainExport, emptyFlags);
+            DeclareOnOff("PreprocessReference", LibraryDependencyTypeFlag.PreprocessReference, emptyFlags);
+
+            DeclareOnOff("RuntimeComponent", LibraryDependencyTypeFlag.RuntimeComponent, emptyFlags);
+            DeclareOnOff("DevComponent", LibraryDependencyTypeFlag.DevComponent, emptyFlags);
+            DeclareOnOff("PreprocessComponent", LibraryDependencyTypeFlag.PreprocessComponent, emptyFlags);
+            DeclareOnOff("BecomesNupkgDependency", LibraryDependencyTypeFlag.BecomesNupkgDependency, emptyFlags);
+        }
+
+        private static void DeclareOnOff(string name, LibraryDependencyTypeFlag flag, IEnumerable<LibraryDependencyTypeFlag> emptyFlags)
+        {
+            Declare(name,
+                    flagsToAdd: new[] { flag },
+                    flagsToRemove: emptyFlags);
+
+            Declare(
+                name + "-off",
+                flagsToAdd: emptyFlags,
+                flagsToRemove: new[] { flag });
         }
 
         private LibraryDependencyTypeKeyword(
-            string value, 
-            IEnumerable<LibraryDependencyTypeFlag> flagsToAdd, 
+            string value,
+            IEnumerable<LibraryDependencyTypeFlag> flagsToAdd,
             IEnumerable<LibraryDependencyTypeFlag> flagsToRemove)
         {
             _value = value;

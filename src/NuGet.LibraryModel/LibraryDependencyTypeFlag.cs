@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace NuGet.LibraryModel
 {
@@ -11,28 +10,17 @@ namespace NuGet.LibraryModel
         private static ConcurrentDictionary<string, LibraryDependencyTypeFlag> _flags = new ConcurrentDictionary<string, LibraryDependencyTypeFlag>();
         private readonly string _value;
 
-        public static LibraryDependencyTypeFlag MainReference;
-        public static LibraryDependencyTypeFlag MainSource;
-        public static LibraryDependencyTypeFlag MainExport;
-        public static LibraryDependencyTypeFlag PreprocessReference;
+        public static LibraryDependencyTypeFlag MainReference = Declare("MainReference");
+        public static LibraryDependencyTypeFlag MainSource = Declare("MainSource");
+        public static LibraryDependencyTypeFlag MainExport = Declare("MainExport");
+        public static LibraryDependencyTypeFlag PreprocessReference = Declare("PreprocessReference");
 
-        public static LibraryDependencyTypeFlag RuntimeComponent;
-        public static LibraryDependencyTypeFlag DevComponent;
-        public static LibraryDependencyTypeFlag PreprocessComponent;
-        public static LibraryDependencyTypeFlag BecomesNupkgDependency;
+        public static LibraryDependencyTypeFlag RuntimeComponent = Declare("RuntimeComponent");
+        public static LibraryDependencyTypeFlag DevComponent = Declare("DevComponent");
+        public static LibraryDependencyTypeFlag PreprocessComponent = Declare("PreprocessComponent");
+        public static LibraryDependencyTypeFlag BecomesNupkgDependency = Declare("BecomesNupkgDependency");
 
-        static LibraryDependencyTypeFlag()
-        {
-            foreach (var fieldInfo in typeof(LibraryDependencyTypeFlag).GetTypeInfo().DeclaredFields)
-            {
-                if (fieldInfo.FieldType == typeof(LibraryDependencyTypeFlag))
-                {
-                    fieldInfo.SetValue(null, Declare(fieldInfo.Name));
-                }
-            }
-        }
-
-        LibraryDependencyTypeFlag(string value)
+        private LibraryDependencyTypeFlag(string value)
         {
             _value = value;
         }
