@@ -11,8 +11,9 @@ namespace NuGet.LibraryModel
         public Library Identity { get; set; }
         public IEnumerable<LibraryDependency> Dependencies { get; set; }
         public bool Resolved { get; set; } = true;
-
         public string Path { get; set; }
+
+        public IDictionary<string, object> Items { get; set; } = new Dictionary<string, object>();
 
         public override string ToString()
         {

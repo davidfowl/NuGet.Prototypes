@@ -20,7 +20,7 @@ namespace NuGet.ProjectModel
         {
             _projectResolver = projectResolver;
         }
-        
+
         public IEnumerable<string> GetAttemptedPaths(FrameworkName targetFramework)
         {
             return _projectResolver.SearchPaths.Select(p => Path.Combine(p, "{name}", "project.json"));
@@ -87,13 +87,13 @@ namespace NuGet.ProjectModel
             }
 
             var dependencies = project.Dependencies.Concat(targetFrameworkDependencies).ToList();
-            
+
             // Mark the library as unresolved if there were specified frameworks
             // and none of them resolved
             bool unresolved = targetFrameworkInfo.FrameworkName == null &&
                               project.TargetFrameworks.Any();
 
-            return new LibraryDescription
+            var description = new LibraryDescription
             {
                 LibraryRange = libraryRange,
                 Identity = new Library
@@ -105,6 +105,10 @@ namespace NuGet.ProjectModel
                 Dependencies = dependencies,
                 Resolved = !unresolved
             };
+
+            description.Items["project"] = project;
+
+            return description;
         }
     }
 }

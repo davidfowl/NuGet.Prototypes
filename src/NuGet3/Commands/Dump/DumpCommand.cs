@@ -75,7 +75,7 @@ namespace NuGet3
 
             // This is so that we have a unique cache per target framework
             var root = walker.Walk(name, version, targetFramework);
-            
+
             Logger.WriteInformation("Unresolved closure".Yellow());
 
             // Raw graph
@@ -126,10 +126,7 @@ namespace NuGet3
                     continue;
                 }
 
-                if (top.DependencyProvider is NuGetDependencyResolver)
-                {
-                    DumpPackageContents(top.LibraryDescription, searchCriteria);
-                }
+                DumpPackageContents(top.LibraryDescription, searchCriteria);
 
                 foreach (var dependency in top.LibraryDescription.Dependencies)
                 {
@@ -190,7 +187,17 @@ namespace NuGet3
         private void DumpPackageContents(LibraryDescription library, SelectionCriteria criteria)
         {
             var packageContents = new ContentItemCollection();
-            packageContents.Load(library.Path);
+
+            object value;
+            if (library.Items.TryGetValue("package", out value))
+            {
+                var lockedLibrary = (LockFileLibrary)value;
+                packageContents.Load(lockedLibrary.Files);
+            }
+            else
+            {
+                return;
+            }
 
             var group = packageContents.FindBestItemGroup(criteria, Patterns.ManagedAssemblies);
 

@@ -8,6 +8,11 @@ namespace NuGet.ContentModel
     {
         private IEnumerable<Asset> _assets;
 
+        public void Load(IEnumerable<string> paths)
+        {
+            _assets = paths.Select(path => new Asset { Path = path });
+        }
+
         public void Load(string manifestPath)
         {
             _assets = AssetManager.GetPackageAssets(manifestPath).SelectMany(ContractBecomesRef).ToList();

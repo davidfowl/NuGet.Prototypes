@@ -24,7 +24,7 @@ namespace NuGet.ProjectModel
 
             if (library != null)
             {
-                return new LibraryDescription
+                var description = new LibraryDescription
                 {
                     LibraryRange = libraryRange,
                     Identity = new Library
@@ -34,6 +34,10 @@ namespace NuGet.ProjectModel
                     },
                     Dependencies = GetDependencies(library, targetFramework)
                 };
+
+                description.Items["package"] = library;
+
+                return description;
             }
 
             return null;

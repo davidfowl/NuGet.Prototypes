@@ -70,7 +70,7 @@ namespace NuGet.MSBuild
                 dependencies.AddRange(targetFrameworkInfo.Dependencies);
             }
 
-            return new LibraryDescription
+            var description = new LibraryDescription
             {
                 LibraryRange = libraryRange,
                 Identity = new Library
@@ -81,6 +81,10 @@ namespace NuGet.MSBuild
                 Path = project.ProjectFileLocation.File,
                 Dependencies = dependencies
             };
+
+            description.Items["project"] = project;
+
+            return description;
         }
     }
 }

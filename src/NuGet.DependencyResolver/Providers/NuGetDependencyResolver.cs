@@ -39,7 +39,13 @@ namespace NuGet.DependencyResolver
 
             if (package != null)
             {
-                return new LibraryDescription
+                NuspecReader nuspecReader = null;
+                using (var stream = File.OpenRead(package.ManifestPath))
+                {
+                    nuspecReader = new NuspecReader(stream);
+                }
+
+                var description = new LibraryDescription
                 {
                     LibraryRange = libraryRange,
                     Identity = new Library
@@ -48,21 +54,21 @@ namespace NuGet.DependencyResolver
                         Version = package.Version
                     },
                     Path = package.ManifestPath,
-                    Dependencies = GetDependencies(package, targetFramework)
+                    Dependencies = GetDependencies(nuspecReader, targetFramework)
                 };
+
+
+                description.Items["package"] = package;
+                description.Items["metadata"] = nuspecReader;
+
+                return description;
             }
 
             return null;
         }
 
-        private IEnumerable<LibraryDependency> GetDependencies(LocalPackageInfo package, NuGetFramework targetFramework)
+        private IEnumerable<LibraryDependency> GetDependencies(NuspecReader nuspecReader, NuGetFramework targetFramework)
         {
-            NuspecReader nuspecReader = null;
-            using (var stream = File.OpenRead(package.ManifestPath))
-            {
-                nuspecReader = new NuspecReader(stream);
-            }
-
             var dependencies = NuGetFrameworkUtility.GetNearest(nuspecReader.GetDependencyGroups(),
                                                       targetFramework,
                                                       item => new NuGetFramework(item.TargetFramework));
@@ -74,8 +80,8 @@ namespace NuGet.DependencyResolver
             return GetDependencies(targetFramework, dependencies, frameworkAssemblies);
         }
 
-        public static IList<LibraryDependency> GetDependencies(NuGetFramework targetFramework, 
-                                                               PackageDependencyGroup dependencies, 
+        public static IList<LibraryDependency> GetDependencies(NuGetFramework targetFramework,
+                                                               PackageDependencyGroup dependencies,
                                                                FrameworkSpecificGroup frameworkAssemblies)
         {
             var libraryDependencies = new List<LibraryDependency>();
