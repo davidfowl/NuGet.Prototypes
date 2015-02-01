@@ -13,6 +13,9 @@
         "NuGet.Packaging.Build": "1.0.0-*",
         "Microsoft.Framework.CommandLineUtils": { "version": "1.0.0-*", "type": "build" }
     },
+    "devDependencies": {
+        
+    },
     "commands": {
         "nuget3": "run"
     },

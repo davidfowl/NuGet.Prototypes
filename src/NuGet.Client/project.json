@@ -5,7 +5,7 @@
         "NuGet.Packaging.Extensions": "1.0.0-*",
         "NuGet.Common": { "version": "1.0.0-*", "type": "build" }
     },
-
+    
     "frameworks": {
         "net45" : { 
             "frameworkAssemblies": {

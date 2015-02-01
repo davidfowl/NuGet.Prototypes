@@ -18,6 +18,7 @@ namespace NuGet
             var packageSourceProvider = new PackageSourceProvider(
                 settings,
                 new[] { defaultPackageSource },
+                new[] { defaultPackageSource },
                 new Dictionary<PackageSource, PackageSource> { });
 
             packageSourceProvider.LoadPackageSources().ToList();

@@ -8,6 +8,8 @@ namespace NuGet.Packaging.Build
 {
     public class JsonFormatter
     {
+        public bool SkipNullValues { get; set; } = true;
+
         public MetadataBuilder Read(Stream stream)
         {
             return null;
@@ -16,12 +18,12 @@ namespace NuGet.Packaging.Build
         public void Write(MetadataBuilder builder, Stream stream)
         {
             var document = new JObject();
-            
+
             foreach (var pair in builder.GetValues())
             {
-                document[pair.Key] = JToken.FromObject(pair.Value);
+                SetValue(document, pair.Key, pair.Value);
             }
-            
+
             foreach (var section in builder.GetSections())
             {
                 var sectionEl = new JObject();
@@ -35,7 +37,7 @@ namespace NuGet.Packaging.Build
                         sectionEl[section.ItemName] = el;
                         foreach (var pair in item.GetValues())
                         {
-                            el[pair.Key] = JToken.FromObject(pair.Value);
+                            SetValue(el, pair.Key, pair.Value);
                         }
                     }
                 }
@@ -57,7 +59,7 @@ namespace NuGet.Packaging.Build
                                     continue;
                                 }
 
-                                el[pair.Key] = JToken.FromObject(pair.Value);
+                                SetValue(el, pair.Key, pair.Value);
                             }
                         }
                     }
@@ -66,6 +68,21 @@ namespace NuGet.Packaging.Build
 
             var sw = new StreamWriter(stream) { AutoFlush = true };
             sw.Write(document.ToString(Formatting.Indented));
+        }
+
+        private void SetValue(JObject obj, string name, object value)
+        {
+            if (value == null && SkipNullValues)
+            {
+                return;
+            }
+
+            obj[name] = FromObject(value);
+        }
+
+        private JToken FromObject(object value)
+        {
+            return value == null ? null : JToken.FromObject(value);
         }
     }
 }

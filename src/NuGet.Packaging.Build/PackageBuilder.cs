@@ -59,7 +59,7 @@ namespace NuGet.Packaging.Build
 
             using (Stream stream = entry.Open())
             {
-                new XmlFormatter().Save(Manifest, stream);
+                new NuSpecFormatter().Save(Manifest, stream);
             }
         }
 

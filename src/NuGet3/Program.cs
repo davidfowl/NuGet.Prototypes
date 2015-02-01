@@ -25,9 +25,13 @@ namespace NuGet3
 
             app.Command("pack", c =>
             {
+                c.Description = "Creates a nuget package from the specified project.json";
+                var projectArg = c.Argument("[root]", "Path to a project.json");
+
                 c.OnExecute(() =>
                 {
                     var command = new PackCommand();
+                    command.ProjectDirectory = projectArg.Value ?? Directory.GetCurrentDirectory();
                     return command.Execute() ? 0 : 1;
                 });
             });

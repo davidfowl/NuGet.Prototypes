@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace NuGet.Packaging.Build
 {
-    public class XmlFormatter
+    public class NuSpecFormatter
     {
         public MetadataBuilder Read(Stream stream)
         {
@@ -55,7 +55,7 @@ namespace NuGet.Packaging.Build
                                     continue;
                                 }
 
-                                el.Add(new XAttribute(pair.Key, pair.Value));
+                                el.Add(new XAttribute(pair.Key, pair.Value?.ToString() ?? ""));
                             }
                             groupEl.Add(el);
                         }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace NuGet.Packaging.Build
 {
@@ -13,11 +15,6 @@ namespace NuGet.Packaging.Build
             return _metadata;
         }
 
-        private IEnumerable<string> GetMetadataValues(string name)
-        {
-            return GetMetadataValue(name) as IEnumerable<string> ?? Enumerable.Empty<string>();
-        }
-
         public object GetMetadataValue(string name)
         {
             object value;
@@ -28,14 +25,31 @@ namespace NuGet.Packaging.Build
             return null;
         }
 
-        public void SetMetadataValues(string name, IEnumerable<string> values)
+
+        public void SetMetadataValue(string name, object value)
+        {
+            _metadata[name] = KeepRawValue(value) ? value : value?.ToString();
+        }
+
+        public void SetMetadataValue(string name, IEnumerable<string> values)
         {
             _metadata[name] = values;
         }
 
-        public void SetMetadataValue(string name, string value)
+        private static bool KeepRawValue(object value)
         {
-            _metadata[name] = value;
+            return value is bool || value is string;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            foreach (var item in _metadata)
+            {
+                sb.AppendFormat("{0} = {1}", item.Key, item.Value)
+                  .AppendLine();
+            }
+            return sb.ToString();
         }
     }
 }
