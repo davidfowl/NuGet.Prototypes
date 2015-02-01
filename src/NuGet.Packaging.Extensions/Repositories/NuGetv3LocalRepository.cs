@@ -21,7 +21,7 @@ namespace NuGet.Repositories
         }
 
         public string RepositoryRoot { get; }
-
+        
         public IEnumerable<LocalPackageInfo> FindPackagesById(string packageId)
         {
             if (string.IsNullOrEmpty(packageId))

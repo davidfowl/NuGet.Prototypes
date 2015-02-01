@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Build.Evaluation;
 using NuGet.Client;
 using NuGet.Common;
@@ -9,7 +10,9 @@ using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.MSBuild;
+using NuGet.ProjectModel;
 using NuGet.Versioning;
+using NuGetProject = NuGet.ProjectModel.Project;
 
 namespace NuGet3
 {
@@ -30,24 +33,38 @@ namespace NuGet3
 
         public bool Execute()
         {
-            var projectCollection = new ProjectCollection();
-            var project = projectCollection.LoadProject(ProjectFile);
-
             var providers = new List<IDependencyProvider>();
 
             var packagesPath = GetPackagesPath();
+            var projectDirectory = Path.GetDirectoryName(ProjectFile);
+
+            var projectCollection = new ProjectCollection();
+            var projectResolver = new ProjectResolver(projectDirectory);
 
             // Handle MSBuild projects
             providers.Add(new MSBuildDependencyProvider(projectCollection));
 
+            providers.Add(new ProjectReferenceDependencyProvider(projectResolver));
+
+            var lockFilePath = Path.Combine(projectDirectory, LockFileFormat.LockFileName);
+
+            var lockFileFormat = new LockFileFormat();
+            var lockFile = lockFileFormat.Read(lockFilePath);
+
+            // Handle dependencies from the lock file
+            providers.Add(new LockFileDependencyProvider(lockFile));
+
             // Handle NuGet dependencies
-            providers.Add(new NuGetDependencyResolver(packagesPath));
+            // providers.Add(new NuGetDependencyResolver(packagesPath));
 
             var walker = new DependencyWalker(providers);
 
-            var name = project.FullPath;
-            var targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
-            var version = new NuGetVersion(new Version());
+            string name;
+            NuGetFramework targetFramework;
+            NuGetVersion version;
+
+            GetProjectInfo(projectResolver,
+                           projectCollection, out name, out targetFramework, out version);
 
             var searchCriteria = GetSelectionCriteria(targetFramework);
 
@@ -120,6 +137,33 @@ namespace NuGet3
             }
 
             return true;
+        }
+
+        private void GetProjectInfo(ProjectResolver projectResolver,
+                                    ProjectCollection projectCollection,
+                                    out string name,
+                                    out NuGetFramework targetFramework,
+                                    out NuGetVersion version)
+        {
+
+            // Project
+
+            name = new DirectoryInfo(Path.GetDirectoryName(ProjectFile)).Name;
+            NuGetProject nugetProject;
+
+            if (projectResolver.TryResolveProject(name, out nugetProject))
+            {
+                targetFramework = nugetProject.TargetFrameworks.FirstOrDefault()?.FrameworkName;
+                version = nugetProject.Version;
+                return;
+            }
+
+            // MSBuild project
+
+            var project = projectCollection.LoadProject(ProjectFile);
+            name = project.FullPath;
+            targetFramework = NuGetFramework.Parse(project.GetPropertyValue("TargetFrameworkMoniker"));
+            version = new NuGetVersion(new Version());
         }
 
         private SelectionCriteria GetSelectionCriteria(NuGetFramework projectFramework)

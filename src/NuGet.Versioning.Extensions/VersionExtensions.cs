@@ -1,9 +1,41 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGet.Versioning.Extensions
 {
     public static class VersionExtensions
     {
+        public static T FindBestMatch<T>(this IEnumerable<T> items,
+                                         NuGetVersionRange ideal,
+                                         Func<T, NuGetVersion> selector) where T : class
+        {
+            if (ideal == null)
+            {
+                // TODO: Disallow null versions for nuget packages
+                return items.FirstOrDefault();
+            }
+
+            T bestMatch = null;
+
+            foreach (var item in items)
+            {
+                if (ideal.IsBetter(
+                    current: selector(bestMatch),
+                    considering: selector(item)))
+                {
+                    bestMatch = item;
+                }
+            }
+
+            if (bestMatch == null)
+            {
+                return null;
+            }
+
+            return bestMatch;
+        }
+
         public static bool IsBetter(
             this NuGetVersionRange ideal,
             NuGetVersion current,

@@ -12,9 +12,14 @@ namespace NuGet.ProjectModel
         private HashSet<string> _searchPaths = new HashSet<string>();
         private Dictionary<string, ProjectInformation> _projects = new Dictionary<string, ProjectInformation>();
 
+        public ProjectResolver(string projectPath)
+        {
+            var rootPath = ResolveRootDirectory(projectPath);
+            Initialize(projectPath, rootPath);
+        }
+
         public ProjectResolver(string projectPath, string rootPath)
         {
-            // We could find all project.json files in the search paths up front here
             Initialize(projectPath, rootPath);
         }
 
@@ -34,6 +39,7 @@ namespace NuGet.ProjectModel
             if (_projects.TryGetValue(name, out projectInfo))
             {
                 project = projectInfo.Project;
+                return true;
             }
 
             return false;
