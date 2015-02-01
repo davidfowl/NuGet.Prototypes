@@ -65,7 +65,7 @@ namespace NuGet.LibraryModel
             {
                 Name = library.Name,
                 IsGacOrFrameworkReference = library.IsGacOrFrameworkReference,
-                VersionRange = new NuGetVersionRange
+                VersionRange = library.Version == null ? null : new NuGetVersionRange
                 {
                     MinVersion = library.Version,
                     VersionFloatBehavior = NuGetVersionFloatBehavior.None

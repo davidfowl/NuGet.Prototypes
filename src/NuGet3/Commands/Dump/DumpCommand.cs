@@ -41,24 +41,6 @@ namespace NuGet3
             var projectCollection = new ProjectCollection();
             var projectResolver = new ProjectResolver(projectDirectory);
 
-            // Handle MSBuild projects
-            providers.Add(new MSBuildDependencyProvider(projectCollection));
-
-            providers.Add(new ProjectReferenceDependencyProvider(projectResolver));
-
-            var lockFilePath = Path.Combine(projectDirectory, LockFileFormat.LockFileName);
-
-            var lockFileFormat = new LockFileFormat();
-            var lockFile = lockFileFormat.Read(lockFilePath);
-
-            // Handle dependencies from the lock file
-            providers.Add(new LockFileDependencyProvider(lockFile));
-
-            // Handle NuGet dependencies
-            // providers.Add(new NuGetDependencyResolver(packagesPath));
-
-            var walker = new DependencyWalker(providers);
-
             string name;
             NuGetFramework targetFramework;
             NuGetVersion version;
@@ -66,11 +48,34 @@ namespace NuGet3
             GetProjectInfo(projectResolver,
                            projectCollection, out name, out targetFramework, out version);
 
+            if (projectCollection.Count > 0)
+            {
+                // Handle MSBuild projects
+                providers.Add(new MSBuildDependencyProvider(projectCollection));
+            }
+            else
+            {
+                providers.Add(new ProjectReferenceDependencyProvider(projectResolver));
+            }
+
+            var lockFilePath = Path.Combine(projectDirectory, LockFileFormat.LockFileName);
+
+            if (File.Exists(lockFilePath))
+            {
+                var lockFileFormat = new LockFileFormat();
+                var lockFile = lockFileFormat.Read(lockFilePath);
+
+                // Handle dependencies from the lock file
+                providers.Add(new LockFileDependencyProvider(lockFile));
+            }
+
+            var walker = new DependencyWalker(providers);
+
             var searchCriteria = GetSelectionCriteria(targetFramework);
 
             // This is so that we have a unique cache per target framework
             var root = walker.Walk(name, version, targetFramework);
-
+            
             Logger.WriteInformation("Unresolved closure".Yellow());
 
             // Raw graph

@@ -13,7 +13,10 @@ namespace NuGet.Packaging.Extensions
 
             var frameworkLookup = items.ToDictionary(item => selector(item));
 
-            var nearest = reducer.GetNearest(framework, frameworkLookup.Keys);
+            var nearest = reducer.GetNearest(framework, frameworkLookup.Keys) ?? 
+                          frameworkLookup.Where(f => f.Key.AnyPlatform)
+                                         .Select(f => f.Key)
+                                         .FirstOrDefault();
 
             if (nearest == null)
             {
