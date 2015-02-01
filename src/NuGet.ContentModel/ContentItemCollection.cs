@@ -10,7 +10,7 @@ namespace NuGet.ContentModel
 
         public void Load(IEnumerable<string> paths)
         {
-            _assets = paths.Select(path => new Asset { Path = path });
+            _assets = paths.Select(path => new Asset { Path = path }).SelectMany(ContractBecomesRef).ToList();
         }
 
         public void Load(string manifestPath)

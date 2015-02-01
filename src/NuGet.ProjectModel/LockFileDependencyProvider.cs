@@ -36,6 +36,7 @@ namespace NuGet.ProjectModel
                 };
 
                 description.Items["package"] = library;
+                description.Items["files"] = library.Files;
 
                 return description;
             }

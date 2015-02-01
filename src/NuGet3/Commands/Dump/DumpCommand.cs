@@ -11,6 +11,7 @@ using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.MSBuild;
 using NuGet.ProjectModel;
+using NuGet.Repositories;
 using NuGet.Versioning;
 using NuGetProject = NuGet.ProjectModel.Project;
 
@@ -67,6 +68,11 @@ namespace NuGet3
 
                 // Handle dependencies from the lock file
                 providers.Add(new LockFileDependencyProvider(lockFile));
+            }
+            else
+            {
+                // Use the global packages folder if available
+                providers.Add(new NuGetDependencyResolver(packagesPath));
             }
 
             var walker = new DependencyWalker(providers);
@@ -155,7 +161,7 @@ namespace NuGet3
 
             if (projectResolver.TryResolveProject(name, out nugetProject))
             {
-                targetFramework = nugetProject.TargetFrameworks.FirstOrDefault()?.FrameworkName;
+                targetFramework = nugetProject.TargetFrameworks.LastOrDefault()?.FrameworkName;
                 version = nugetProject.Version;
                 return;
             }
@@ -187,19 +193,26 @@ namespace NuGet3
         private void DumpPackageContents(LibraryDescription library, SelectionCriteria criteria)
         {
             var packageContents = new ContentItemCollection();
+            var files = library.GetItem<IEnumerable<string>>("files");
 
-            object value;
-            if (library.Items.TryGetValue("package", out value))
+            if (files != null)
             {
-                var lockedLibrary = (LockFileLibrary)value;
-                packageContents.Load(lockedLibrary.Files);
+                packageContents.Load(files);
             }
             else
             {
-                return;
+                var packageInfo = library.GetItem<LocalPackageInfo>("package");
+
+                if (packageInfo == null)
+                {
+                    return;
+                }
+
+                packageContents.Load(packageInfo.ManifestPath);
             }
 
-            var group = packageContents.FindBestItemGroup(criteria, Patterns.ManagedAssemblies);
+
+            var group = packageContents.FindBestItemGroup(criteria, Patterns.CompileTimeAssemblies, Patterns.ManagedAssemblies);
 
             if (group == null)
             {
@@ -233,7 +246,7 @@ namespace NuGet3
             }
 
             // TODO: Change this
-            return Path.Combine(profileDirectory, ".dotnet", "packages");
+            return Path.Combine(profileDirectory, ".k", "packages");
         }
     }
 }

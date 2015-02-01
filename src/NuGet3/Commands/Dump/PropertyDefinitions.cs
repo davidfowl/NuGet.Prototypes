@@ -52,12 +52,12 @@ namespace NuGet3
         {
             Table =
                 {
-                    { "aspnet50", new NuGetFramework("ASP.NET,Version=5.0") },
-                    { "aspnetcore50", new NuGetFramework("ASP.NETCore,Version=5.0") },
-                    { "any", new NuGetFramework("ContractBased,Version=1.0") },
-                    { "monoandroid", new NuGetFramework("MonoAndroid,Version=0.0") },
-                    { "monotouch", new NuGetFramework("MonoTouch,Version=0.0") },
-                    { "monomac", new NuGetFramework("MonoMac,Version=0.0") },
+                    { "aspnet50", new NuGetFramework("ASP.NET", new Version(5, 0)) },
+                    { "aspnetcore50", new NuGetFramework("ASP.NETCore", new Version(5, 0)) },
+                    { "any", NuGetFramework.AnyFramework },
+                    { "monoandroid", new NuGetFramework("MonoAndroid",new Version()) },
+                    { "monotouch", new NuGetFramework("MonoTouch",new Version()) },
+                    { "monomac", new NuGetFramework("MonoMac", new Version()) },
                 },
             Parser = TargetFrameworkName_Parser,
             OnIsCriteriaSatisfied = TargetFrameworkName_IsCriteriaSatisfied
