@@ -1,4 +1,5 @@
 build\kvm.ps1 upgrade
+kpm restore
 $scriptPath = split-path $MyInvocation.MyCommand.Path -parent
 $artifacts = Join-Path $scriptPath "artifacts"
 $nuget3Output = Join-Path $artifacts "nuget3"
