@@ -78,6 +78,7 @@ namespace NuGet.MSBuild
                     Name = libraryRange.Name,
                     Version = new NuGetVersion(new Version(1, 0)) // TODO: Make up something better
                 },
+                Type = LibraryDescriptionTypes.Project,
                 Path = project.ProjectFileLocation.File,
                 Dependencies = dependencies
             };

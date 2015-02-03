@@ -95,7 +95,7 @@ namespace NuGet3
             // Dump dependency graph after resolution
             root.Dump(Logger.WriteInformation);
 
-            var resolvedItems = new Dictionary<string, GraphItem<ResolveResult>>();
+            var resolvedItems = new Dictionary<string, LibraryDescription>();
 
             // Pick the relevant versions of the package after conflict
             // resolution
@@ -110,41 +110,77 @@ namespace NuGet3
 
                 if (!resolvedItems.ContainsKey(node.Key.Name))
                 {
-                    resolvedItems[node.Key.Name] = node.Item;
+                    resolvedItems[node.Key.Name] = node.Item.Data.LibraryDescription;
                 }
 
                 return true;
             });
 
-            var seen = new HashSet<string>();
-            var queue = new Queue<ResolveResult>();
-
-            // The reason we don't just look the packages as a flat list is because we'll need to 
-            // eventually handle private dependencies which require knowledge of the graph
-            queue.Enqueue(resolvedItems[name].Data);
-
-            while (queue.Count > 0)
+            // Load the resolvable contents into the library description
+            foreach (var library in resolvedItems.Values)
             {
-                var top = queue.Dequeue();
-
-                if (!seen.Add(top.LibraryDescription.Identity.Name))
+                if (library.Type != LibraryDescriptionTypes.Package)
                 {
                     continue;
                 }
 
-                DumpPackageContents(top.LibraryDescription, searchCriteria);
+                LoadContents(library);
 
-                foreach (var dependency in top.LibraryDescription.Dependencies)
+                // A flat list can be used for runtime since private dependencies only matter
+                // for compilation
+                
+                // Dump native dependencies
+                DumpApplicableContents(library, searchCriteria, Patterns.NativeLibraries);
+
+                // Dump things required for running
+                DumpApplicableContents(library, searchCriteria, Patterns.ManagedAssemblies);
+
+                // Dump things required for compilation
+                // This ignores private dependencies right now
+                // DumpApplicableContents(library, searchCriteria, Patterns.CompileTimeAssemblies, Patterns.ManagedAssemblies);
+            }
+
+            // Dump things required for compilation
+            //DumpApplicableContents(resolved,
+            //                       searchCriteria,
+            //                       Patterns.CompileTimeAssemblies, Patterns.ManagedAssemblies);
+
+            return true;
+        }
+        
+        private void DumpApplicableContents(LibraryDescription library,
+                                            SelectionCriteria criteria,
+                                            params ContentPatternDefinition[] definitions)
+        {
+            var contents = library.GetItem<ContentItemCollection>("contents");
+
+            if (contents == null)
+            {
+                return;
+            }
+
+            var group = contents.FindBestItemGroup(criteria, definitions);
+
+            if (group == null)
+            {
+                // No matching groups
+                return;
+            }
+
+            Logger.WriteInformation(library.ToString().White());
+            Logger.WriteInformation("=========================");
+            foreach (var item in group.Items)
+            {
+                Logger.WriteInformation(item.Path.White());
+
+                foreach (var property in item.Properties)
                 {
-                    GraphItem<ResolveResult> dependencyItem;
-                    if (resolvedItems.TryGetValue(dependency.Name, out dependencyItem))
-                    {
-                        queue.Enqueue(dependencyItem.Data);
-                    }
+                    Logger.WriteInformation(property.Key.Yellow() + " = " + property.Value);
                 }
             }
 
-            return true;
+            Logger.WriteInformation("=========================");
+            Console.WriteLine();
         }
 
         private void GetProjectInfo(ProjectResolver projectResolver,
@@ -161,7 +197,7 @@ namespace NuGet3
 
             if (projectResolver.TryResolveProject(name, out nugetProject))
             {
-                targetFramework = nugetProject.TargetFrameworks.LastOrDefault()?.FrameworkName;
+                targetFramework = nugetProject.TargetFrameworks.FirstOrDefault()?.FrameworkName;
                 version = nugetProject.Version;
                 return;
             }
@@ -190,14 +226,14 @@ namespace NuGet3
             return criteria;
         }
 
-        private void DumpPackageContents(LibraryDescription library, SelectionCriteria criteria)
+        private void LoadContents(LibraryDescription library)
         {
-            var packageContents = new ContentItemCollection();
+            var contents = new ContentItemCollection();
             var files = library.GetItem<IEnumerable<string>>("files");
 
             if (files != null)
             {
-                packageContents.Load(files);
+                contents.Load(files);
             }
             else
             {
@@ -208,32 +244,10 @@ namespace NuGet3
                     return;
                 }
 
-                packageContents.Load(packageInfo.ManifestPath);
+                contents.Load(packageInfo.ManifestPath);
             }
 
-
-            var group = packageContents.FindBestItemGroup(criteria, Patterns.CompileTimeAssemblies, Patterns.ManagedAssemblies);
-
-            if (group == null)
-            {
-                // No matching groups
-                return;
-            }
-
-            Logger.WriteInformation(library.ToString().White());
-            Logger.WriteInformation("=========================");
-            foreach (var item in group.Items)
-            {
-                Logger.WriteInformation(item.Path.White());
-
-                foreach (var property in item.Properties)
-                {
-                    Logger.WriteInformation(property.Key.Yellow() + " = " + property.Value);
-                }
-            }
-
-            Logger.WriteInformation("=========================");
-            Console.WriteLine();
+            library.Items["contents"] = contents;
         }
 
         private string GetPackagesPath()

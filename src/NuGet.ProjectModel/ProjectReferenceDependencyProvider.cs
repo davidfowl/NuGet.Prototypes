@@ -101,6 +101,7 @@ namespace NuGet.ProjectModel
                     Name = project.Name,
                     Version = project.Version
                 },
+                Type = LibraryDescriptionTypes.Project,
                 Path = project.ProjectFilePath,
                 Dependencies = dependencies,
                 Resolved = !unresolved

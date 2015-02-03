@@ -32,6 +32,7 @@ namespace NuGet.ProjectModel
                         Name = library.Name,
                         Version = library.Version
                     },
+                    Type = LibraryDescriptionTypes.Package,
                     Dependencies = GetDependencies(library, targetFramework)
                 };
 

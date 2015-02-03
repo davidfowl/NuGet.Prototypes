@@ -12,6 +12,7 @@ namespace NuGet.LibraryModel
         public IEnumerable<LibraryDependency> Dependencies { get; set; }
         public bool Resolved { get; set; } = true;
         public string Path { get; set; }
+        public string Type { get; set; }
 
         public IDictionary<string, object> Items { get; set; } = new Dictionary<string, object>();
 
