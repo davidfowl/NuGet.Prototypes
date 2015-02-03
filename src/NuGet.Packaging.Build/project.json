@@ -9,9 +9,9 @@
     "frameworks": {
         "net45": {
             "frameworkAssemblies": {
-                "System.IO.Compression": "",
-                "System.Xml": "",
-                "System.Xml.Linq": ""
+                "System.IO.Compression": { "version": "", "type": "build" },
+                "System.Xml": { "version": "", "type": "build" },
+                "System.Xml.Linq": { "version": "", "type": "build" }
             }
         },
         "aspnet50": {

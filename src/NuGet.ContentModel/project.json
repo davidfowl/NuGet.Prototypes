@@ -7,8 +7,8 @@
     "frameworks": {
         "net45": {
             "frameworkAssemblies": {
-                "System.Xml": "",
-                "System.Xml.Linq": ""
+                "System.Xml": { "version": "", "type": "build" },
+                "System.Xml.Linq": { "version": "", "type": "build" }
             }
         },
         "aspnet50": {

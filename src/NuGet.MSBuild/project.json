@@ -8,11 +8,11 @@
     "frameworks": {
         "net45": {
             "frameworkAssemblies": {
-                "System.Globalization": "",
-                "Microsoft.Build": "",
-                "Microsoft.Build.Engine": "",
-                "Microsoft.Build.Framework": "",
-                "System.Xml": ""
+                "System.Globalization": { "version": "", "type": "build" },
+                "Microsoft.Build": { "version": "", "type": "build" },
+                "Microsoft.Build.Engine": { "version": "", "type": "build" },
+                "Microsoft.Build.Framework": { "version": "", "type": "build" },
+                "System.Xml": { "version": "", "type": "build" }
             }
         }
     }

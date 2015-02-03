@@ -9,11 +9,11 @@
     "frameworks": {
         "net45" : { 
             "frameworkAssemblies": {
-                "System.Runtime": "",
-                "System.IO.Compression": "",
-                "System.Net.Http": "",
-                "System.Xml": "",
-                "System.Xml.Linq": ""
+                "System.Runtime": { "version": "", "type": "build" },
+                "System.IO.Compression": { "version": "", "type": "build" },
+                "System.Net.Http": { "version": "", "type": "build" },
+                "System.Xml": { "version": "", "type": "build" },
+                "System.Xml.Linq": { "version": "", "type": "build" }
             }
         },
         "aspnet50": {
