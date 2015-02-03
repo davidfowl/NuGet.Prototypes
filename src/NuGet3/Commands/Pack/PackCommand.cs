@@ -12,17 +12,17 @@ namespace NuGet3
 {
     public class PackCommand
     {
-        public string ProjectDirectory { get; set; }
+        public string ProjectFile { get; set; }
 
         public ILogger Logger { get; set; }
 
         public bool Execute()
         {
             var builder = new PackageBuilder();
-            builder.RelativePathRoot = Directory.GetCurrentDirectory();
+            builder.RelativePathRoot = Path.GetDirectoryName(ProjectFile);
 
             Project project;
-            if (!ProjectReader.TryReadProject(ProjectDirectory, out project))
+            if (!ProjectReader.TryReadProject(ProjectFile, out project))
             {
                 Logger.WriteError("Unable to find project.json".Red());
                 return false;
@@ -32,11 +32,11 @@ namespace NuGet3
             builder.Manifest.SetMetadataValue("id", project.Name);
             builder.Manifest.SetMetadataValue("version", project.Version);
             builder.Manifest.SetMetadataValue("description", project.Description);
+            builder.Manifest.SetMetadataValue("authors", project.Authors.Any() ? project.Authors : new[] { "NuGet" });
             builder.Manifest.SetMetadataValue("projectUrl", project.ProjectUrl);
             builder.Manifest.SetMetadataValue("iconUrl", project.IconUrl);
             builder.Manifest.SetMetadataValue("licenseUrl", project.LicenseUrl);
             builder.Manifest.SetMetadataValue("requireLicenseAcceptance", project.RequireLicenseAcceptance);
-            builder.Manifest.SetMetadataValue("author", project.Authors);
             builder.Manifest.SetMetadataValue("owners", project.Owners);
             builder.Manifest.SetMetadataValue("copyright", project.Copyright);
             builder.Manifest.SetMetadataValue("tags", project.Tags);
@@ -84,18 +84,29 @@ namespace NuGet3
                 }
             });
 
-            var stream = Console.OpenStandardOutput();
-            var nuspecFormatter = new NuSpecFormatter();
-            nuspecFormatter.Save(builder.Manifest, stream);
-            Console.WriteLine();
-            var json = new JsonFormatter();
-            json.Write(builder.Manifest, stream);
+            string configuration = "Debug";
+            string outputPath = Path.Combine(builder.RelativePathRoot, "bin", configuration);
 
-            Console.WriteLine();
+            foreach (var framework in project.TargetFrameworks)
+            {
+                var shortName = framework.FrameworkName.GetShortFolderName();
+                if (shortName.StartsWith("aspnet"))
+                {
+                    shortName += "0";
+                }
+                var src = Path.Combine(outputPath, shortName, project.Name + ".dll");
+                var target = string.Format("lib/{0}/{1}.dll", shortName, project.Name);
+                builder.AddFile(src, target);
+            }
 
-            builder.AddFile("bin/Debug/Foo.dll", "lib/net45/Foo.dll", version: 0);
-            //builder.AddFile("bin/Debug/Foo.pdb", "lib/net45/Foo.pdb", version: 1);
-            //builder.AddFilePattern("native/**/*.*", "native");
+            var path = Path.Combine(outputPath, project.Name + "." + project.Version + ".nupkg");
+
+            using (var stream = File.Create(path))
+            {
+                builder.Save(stream);
+            }
+
+            Console.WriteLine(path);
 
             return true;
         }

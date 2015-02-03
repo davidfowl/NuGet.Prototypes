@@ -19,7 +19,10 @@ namespace NuGet.Packaging.Build
 
             foreach (var pair in builder.GetValues())
             {
-                metadata.Add(new XElement(pair.Key, pair.Value));
+                if (HasValue(pair.Value))
+                {
+                    metadata.Add(new XElement(pair.Key, pair.Value));
+                }
             }
 
             var sectionElements = new List<XElement>();
@@ -71,9 +74,25 @@ namespace NuGet.Packaging.Build
                 new XElement("package",
                     metadata));
 
-            sectionElements.ForEach(el => document.Root.Add(el));
+            sectionElements.ForEach(el => metadata.Add(el));
 
             document.Save(stream);
+        }
+
+        private bool HasValue(object value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            var values = value as IEnumerable<object>;
+            if (values != null && values.Any())
+            {
+                return false;
+            }
+
+            return value != null;
         }
     }
 }

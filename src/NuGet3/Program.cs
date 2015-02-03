@@ -31,7 +31,7 @@ namespace NuGet3
                 c.OnExecute(() =>
                 {
                     var command = new PackCommand();
-                    command.ProjectDirectory = projectArg.Value ?? Directory.GetCurrentDirectory();
+                    command.ProjectFile = projectArg.Value ?? Directory.GetCurrentDirectory();
                     return command.Execute() ? 0 : 1;
                 });
             });

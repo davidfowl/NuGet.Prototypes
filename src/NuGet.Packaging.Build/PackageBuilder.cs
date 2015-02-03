@@ -15,6 +15,7 @@ namespace NuGet.Packaging.Build
 
         public void AddFile(string sourcePath, string targetPath, int? version = null)
         {
+            sourcePath = Path.GetFullPath(Path.Combine(RelativePathRoot, sourcePath));
             AddFile(new PhysicalPackageFile(sourcePath, targetPath, version));
         }
 
