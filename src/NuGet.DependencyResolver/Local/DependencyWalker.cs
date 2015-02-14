@@ -62,7 +62,7 @@ namespace NuGet.DependencyResolver
 
                         if (eclipsed)
                         {
-                            break;
+                            throw new InvalidOperationException(string.Format("Circular dependency detected {0}.", GetChain(node, dependency)));
                         }
 
                         foreach (var sideNode in scanNode.InnerNodes)
@@ -92,6 +92,20 @@ namespace NuGet.DependencyResolver
             });
 
             return root;
+        }
+
+        private static string GetChain(GraphNode<ResolveResult> node, LibraryDependency dependency)
+        {
+            var result = dependency.Name;
+            var current = node;
+
+            while (current != null)
+            {
+                result = current.Key.Name + " -> " + result;
+                current = current.OuterNode;
+            }
+
+            return result;
         }
 
         private GraphItem<ResolveResult> Resolve(
