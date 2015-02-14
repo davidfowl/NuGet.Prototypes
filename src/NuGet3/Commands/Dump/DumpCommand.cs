@@ -110,7 +110,7 @@ namespace NuGet3
 
                 if (!resolvedItems.ContainsKey(node.Key.Name))
                 {
-                    resolvedItems[node.Key.Name] = node.Item.Data.LibraryDescription;
+                    resolvedItems[node.Key.Name] = node.Item.Data;
                 }
 
                 return true;

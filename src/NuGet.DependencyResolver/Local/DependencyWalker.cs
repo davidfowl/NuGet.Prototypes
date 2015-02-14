@@ -20,7 +20,7 @@ namespace NuGet.DependencyResolver
             _dependencyProviders = dependencyProviders;
         }
 
-        public GraphNode<ResolveResult> Walk(string name, NuGetVersion version, NuGetFramework framework)
+        public GraphNode<LibraryDescription> Walk(string name, NuGetVersion version, NuGetFramework framework)
         {
             var key = new LibraryRange
             {
@@ -28,9 +28,9 @@ namespace NuGet.DependencyResolver
                 VersionRange = new NuGetVersionRange(version)
             };
 
-            var root = new GraphNode<ResolveResult>(key);
+            var root = new GraphNode<LibraryDescription>(key);
 
-            var resolvedItems = new Dictionary<LibraryRange, GraphItem<ResolveResult>>();
+            var resolvedItems = new Dictionary<LibraryRange, GraphItem<LibraryDescription>>();
 
             // Recurse through dependencies optimistically, asking resolvers for dependencies
             // based on best match of each encountered dependency
@@ -43,7 +43,7 @@ namespace NuGet.DependencyResolver
                     return;
                 }
 
-                foreach (var dependency in node.Item.Data.LibraryDescription.Dependencies)
+                foreach (var dependency in node.Item.Data.Dependencies)
                 {
                     // determine if a child dependency is eclipsed by
                     // a reference on the line leading to this point. this
@@ -81,7 +81,7 @@ namespace NuGet.DependencyResolver
 
                     if (!eclipsed)
                     {
-                        var innerNode = new GraphNode<ResolveResult>(dependency.LibraryRange)
+                        var innerNode = new GraphNode<LibraryDescription>(dependency.LibraryRange)
                         {
                             OuterNode = node
                         };
@@ -94,7 +94,7 @@ namespace NuGet.DependencyResolver
             return root;
         }
 
-        private static string GetChain(GraphNode<ResolveResult> node, LibraryDependency dependency)
+        private static string GetChain(GraphNode<LibraryDescription> node, LibraryDependency dependency)
         {
             var result = dependency.Name;
             var current = node;
@@ -108,30 +108,24 @@ namespace NuGet.DependencyResolver
             return result;
         }
 
-        private GraphItem<ResolveResult> Resolve(
-            Dictionary<LibraryRange, GraphItem<ResolveResult>> resolvedItems,
+        private GraphItem<LibraryDescription> Resolve(
+            Dictionary<LibraryRange, GraphItem<LibraryDescription>> resolvedItems,
             LibraryRange packageKey,
             NuGetFramework framework)
         {
-            GraphItem<ResolveResult> item;
+            GraphItem<LibraryDescription> item;
             if (resolvedItems.TryGetValue(packageKey, out item))
             {
                 return item;
             }
 
-            ResolveResult hit = null;
+            LibraryDescription hit = null;
 
             foreach (var dependencyProvider in _dependencyProviders)
             {
-                var match = dependencyProvider.GetDescription(packageKey, framework);
-                if (match != null)
+                hit = dependencyProvider.GetDescription(packageKey, framework);
+                if (hit != null)
                 {
-                    hit = new ResolveResult
-                    {
-                        DependencyProvider = dependencyProvider,
-                        LibraryDescription = match
-                    };
-
                     break;
                 }
             }
@@ -142,18 +136,18 @@ namespace NuGet.DependencyResolver
                 return null;
             }
 
-            if (resolvedItems.TryGetValue(hit.LibraryDescription.Identity, out item))
+            if (resolvedItems.TryGetValue(hit.Identity, out item))
             {
                 return item;
             }
 
-            item = new GraphItem<ResolveResult>(hit.LibraryDescription.Identity)
+            item = new GraphItem<LibraryDescription>(hit.Identity)
             {
                 Data = hit
             };
 
             resolvedItems[packageKey] = item;
-            resolvedItems[hit.LibraryDescription.Identity] = item;
+            resolvedItems[hit.Identity] = item;
             return item;
         }
     }
