@@ -119,7 +119,7 @@ namespace NuGet3
             // Load the resolvable contents into the library description
             foreach (var library in resolvedItems.Values)
             {
-                if (library.Type != LibraryDescriptionTypes.Package)
+                if (library.Identity.Type != LibraryTypes.Package)
                 {
                     continue;
                 }
@@ -128,7 +128,7 @@ namespace NuGet3
 
                 // A flat list can be used for runtime since private dependencies only matter
                 // for compilation
-                
+
                 // Dump native dependencies
                 DumpApplicableContents(library, searchCriteria, Patterns.NativeLibraries);
 
@@ -147,7 +147,7 @@ namespace NuGet3
 
             return true;
         }
-        
+
         private void DumpApplicableContents(LibraryDescription library,
                                             SelectionCriteria criteria,
                                             params ContentPatternDefinition[] definitions)

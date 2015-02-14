@@ -22,13 +22,13 @@ namespace NuGet.MSBuild
             _projectCollection = projectCollection;
         }
 
+        public bool SupportsType(string libraryType)
+        {
+            return string.Equals(libraryType, LibraryTypes.MSBuildProject);
+        }
+
         public LibraryDescription GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
-            if (libraryRange.IsGacOrFrameworkReference)
-            {
-                return null;
-            }
-
             var project = _projectCollection.LoadedProjects.FirstOrDefault(p => string.Equals(p.FullPath, libraryRange.Name));
 
             if (project == null)
@@ -53,7 +53,8 @@ namespace NuGet.MSBuild
                     LibraryRange = new LibraryRange
                     {
                         Name = referencedProject.FullPath,
-                        VersionRange = new NuGetVersionRange(new NuGetVersion(new Version(1, 0)))
+                        VersionRange = new NuGetVersionRange(new NuGetVersion(new Version(1, 0))),
+                        Type = LibraryTypes.MSBuildProject
                     },
                 });
             }
@@ -76,9 +77,9 @@ namespace NuGet.MSBuild
                 Identity = new Library
                 {
                     Name = libraryRange.Name,
-                    Version = new NuGetVersion(new Version(1, 0)) // TODO: Make up something better
+                    Version = new NuGetVersion(new Version(1, 0)), // TODO: Make up something better
+                    Type = LibraryTypes.MSBuildProject
                 },
-                Type = LibraryDescriptionTypes.Project,
                 Path = project.ProjectFileLocation.File,
                 Dependencies = dependencies
             };

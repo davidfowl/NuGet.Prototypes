@@ -243,7 +243,7 @@ namespace NuGet.ProjectModel
                         {
                             Name = dependency.Key,
                             VersionRange = dependencyVersionRange,
-                            IsGacOrFrameworkReference = isGacOrFrameworkReference,
+                            Type = LibraryTypes.FrameworkOrGacAssembly,
                         },
                         Type = dependencyTypeValue
                     });

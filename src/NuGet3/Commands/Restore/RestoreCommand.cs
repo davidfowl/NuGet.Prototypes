@@ -23,6 +23,7 @@ using NuGet.Packaging.Extensions;
 using NuGet.ProjectModel;
 using NuGet.Repositories;
 using NuGet.Versioning;
+using NuGet.Versioning.Extensions;
 using NuGetProject = NuGet.ProjectModel.Project;
 
 namespace NuGet3
@@ -205,14 +206,28 @@ namespace NuGet3
                 var name = msbuildProject.GetPropertyValue("AssemblyName");
                 var targetFrameworkMoniker = msbuildProject.GetPropertyValue("TargetFrameworkMoniker");
 
+                var library = new LibraryRange
+                {
+                    Name = name,
+                    VersionRange = new NuGetVersionRange(new NuGetVersion(new Version())),
+                    Type = LibraryTypes.MSBuildProject
+                };
+
                 // This is so that we have a unique cache per target framework
-                tasks.Add(remoteWalker.Walk(name, new NuGetVersion(new Version()), NuGetFramework.Parse(targetFrameworkMoniker)));
+                tasks.Add(remoteWalker.Walk(library, NuGetFramework.Parse(targetFrameworkMoniker)));
             }
             else
             {
                 foreach (var framework in project.TargetFrameworks)
                 {
-                    tasks.Add(remoteWalker.Walk(project.Name, project.Version, framework.FrameworkName));
+                    var library = new LibraryRange
+                    {
+                        Name = project.Name,
+                        VersionRange = new NuGetVersionRange(project.Version),
+                        Type = LibraryTypes.Project
+                    };
+
+                    tasks.Add(remoteWalker.Walk(library, framework.FrameworkName));
                 }
             }
 
@@ -237,9 +252,9 @@ namespace NuGet3
 
                     if (node.Item == null || node.Item.Data.Match == null)
                     {
-                        if (!node.Key.IsGacOrFrameworkReference &&
-                             node.Key.VersionRange != null &&
-                             missingItems.Add(node.Key))
+                        if (node.Key.Type != LibraryTypes.FrameworkOrGacAssembly &&
+                            node.Key.VersionRange != null &&
+                            missingItems.Add(node.Key))
                         {
                             Logger.WriteError(string.Format("Unable to locate {0} {1}", node.Key.Name.Red().Bold(), node.Key.VersionRange));
                             success = false;

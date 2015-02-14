@@ -55,10 +55,7 @@ namespace NuGet.DependencyResolver
                          scanNode != null && !eclipsed;
                          scanNode = scanNode.OuterNode)
                     {
-                        eclipsed |= string.Equals(
-                            scanNode.Key.Name,
-                            dependency.Name,
-                            StringComparison.OrdinalIgnoreCase);
+                        eclipsed |= scanNode.Key.IsEclipsedBy(dependency.LibraryRange);
 
                         if (eclipsed)
                         {
@@ -67,10 +64,7 @@ namespace NuGet.DependencyResolver
 
                         foreach (var sideNode in scanNode.InnerNodes)
                         {
-                            eclipsed |= string.Equals(
-                                sideNode.Key.Name,
-                                dependency.Name,
-                                StringComparison.OrdinalIgnoreCase);
+                            eclipsed |= sideNode.Key.IsEclipsedBy(dependency.LibraryRange);
 
                             if (eclipsed)
                             {
@@ -110,11 +104,11 @@ namespace NuGet.DependencyResolver
 
         private GraphItem<LibraryDescription> Resolve(
             Dictionary<LibraryRange, GraphItem<LibraryDescription>> resolvedItems,
-            LibraryRange packageKey,
+            LibraryRange library,
             NuGetFramework framework)
         {
             GraphItem<LibraryDescription> item;
-            if (resolvedItems.TryGetValue(packageKey, out item))
+            if (resolvedItems.TryGetValue(library, out item))
             {
                 return item;
             }
@@ -123,7 +117,13 @@ namespace NuGet.DependencyResolver
 
             foreach (var dependencyProvider in _dependencyProviders)
             {
-                hit = dependencyProvider.GetDescription(packageKey, framework);
+                // Skip unsupported library type
+                if (!dependencyProvider.SupportsType(library.Type))
+                {
+                    continue;
+                }
+
+                hit = dependencyProvider.GetDescription(library, framework);
                 if (hit != null)
                 {
                     break;
@@ -132,7 +132,7 @@ namespace NuGet.DependencyResolver
 
             if (hit == null)
             {
-                resolvedItems[packageKey] = null;
+                resolvedItems[library] = null;
                 return null;
             }
 
@@ -146,7 +146,7 @@ namespace NuGet.DependencyResolver
                 Data = hit
             };
 
-            resolvedItems[packageKey] = item;
+            resolvedItems[library] = item;
             resolvedItems[hit.Identity] = item;
             return item;
         }

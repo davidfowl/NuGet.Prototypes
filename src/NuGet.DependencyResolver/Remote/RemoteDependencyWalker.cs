@@ -21,17 +21,11 @@ namespace NuGet.DependencyResolver
             _context = context;
         }
 
-        public Task<GraphNode<RemoteResolveResult>> Walk(string name, NuGetVersion version, NuGetFramework framework)
+        public Task<GraphNode<RemoteResolveResult>> Walk(LibraryRange library, NuGetFramework framework)
         {
             var cache = new Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>>();
 
-            return CreateGraphNode(cache, new LibraryRange
-            {
-                Name = name,
-                VersionRange = new NuGetVersionRange(version)
-            },
-            framework,
-            _ => true);
+            return CreateGraphNode(cache, library, framework, _ => true);
         }
 
         private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(Dictionary<LibraryRange, Task<GraphItem<RemoteResolveResult>>> cache, LibraryRange libraryRange, NuGetFramework framework, Func<string, bool> predicate)
@@ -152,7 +146,7 @@ namespace NuGet.DependencyResolver
                 return null;
             }
 
-            if (libraryRange.IsGacOrFrameworkReference)
+            if (libraryRange.Type == LibraryTypes.FrameworkOrGacAssembly)
             {
                 return null;
             }

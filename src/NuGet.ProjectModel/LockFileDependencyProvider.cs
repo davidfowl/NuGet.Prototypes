@@ -18,6 +18,12 @@ namespace NuGet.ProjectModel
             _libraries = lockFile.Libraries.ToLookup(l => l.Name);
         }
 
+        public bool SupportsType(string libraryType)
+        {
+            return string.IsNullOrEmpty(libraryType) ||
+                   string.Equals(libraryType, LibraryTypes.Package);
+        }
+
         public LibraryDescription GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
             var library = FindCandidate(libraryRange);
@@ -30,9 +36,9 @@ namespace NuGet.ProjectModel
                     Identity = new Library
                     {
                         Name = library.Name,
-                        Version = library.Version
+                        Version = library.Version,
+                        Type = LibraryTypes.Package
                     },
-                    Type = LibraryDescriptionTypes.Package,
                     Dependencies = GetDependencies(library, targetFramework)
                 };
 

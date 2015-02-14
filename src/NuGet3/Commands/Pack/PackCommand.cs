@@ -48,7 +48,7 @@ namespace NuGet3
                     foreach (var dependency in project.Dependencies.Concat(framework.Dependencies))
                     {
                         if (!dependency.Type.Contains(LibraryDependencyTypeFlag.BecomesNupkgDependency) ||
-                            dependency.LibraryRange.IsGacOrFrameworkReference)
+                            dependency.LibraryRange.Type == LibraryTypes.FrameworkOrGacAssembly)
                         {
                             continue;
                         }
@@ -73,7 +73,7 @@ namespace NuGet3
             {
                 foreach (var framework in project.TargetFrameworks)
                 {
-                    foreach (var dependency in framework.Dependencies.Where(d => d.LibraryRange.IsGacOrFrameworkReference))
+                    foreach (var dependency in framework.Dependencies.Where(d => d.LibraryRange.Type == LibraryTypes.FrameworkOrGacAssembly))
                     {
                         s.DefineEntry(a =>
                         {

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,13 +27,14 @@ namespace NuGet.ProjectModel
             return _projectResolver.SearchPaths.Select(p => Path.Combine(p, "{name}", "project.json"));
         }
 
+        public bool SupportsType(string libraryType)
+        {
+            return string.IsNullOrEmpty(libraryType) ||
+                   string.Equals(libraryType, LibraryTypes.Project);
+        }
+
         public LibraryDescription GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
-            if (libraryRange.IsGacOrFrameworkReference)
-            {
-                return null;
-            }
-
             string name = libraryRange.Name;
 
             Project project;
@@ -54,7 +56,7 @@ namespace NuGet.ProjectModel
                     LibraryRange = new LibraryRange
                     {
                         Name = "mscorlib",
-                        IsGacOrFrameworkReference = true
+                        Type = LibraryTypes.FrameworkOrGacAssembly
                     }
                 });
 
@@ -63,7 +65,7 @@ namespace NuGet.ProjectModel
                     LibraryRange = new LibraryRange
                     {
                         Name = "System",
-                        IsGacOrFrameworkReference = true
+                        Type = LibraryTypes.FrameworkOrGacAssembly
                     }
                 });
 
@@ -72,7 +74,7 @@ namespace NuGet.ProjectModel
                     LibraryRange = new LibraryRange
                     {
                         Name = "System.Core",
-                        IsGacOrFrameworkReference = true
+                        Type = LibraryTypes.FrameworkOrGacAssembly
                     }
                 });
 
@@ -81,7 +83,7 @@ namespace NuGet.ProjectModel
                     LibraryRange = new LibraryRange
                     {
                         Name = "Microsoft.CSharp",
-                        IsGacOrFrameworkReference = true
+                        Type = LibraryTypes.FrameworkOrGacAssembly
                     }
                 });
             }
@@ -99,9 +101,9 @@ namespace NuGet.ProjectModel
                 Identity = new Library
                 {
                     Name = project.Name,
-                    Version = project.Version
+                    Version = project.Version,
+                    Type = LibraryTypes.Project,
                 },
-                Type = LibraryDescriptionTypes.Project,
                 Path = project.ProjectFilePath,
                 Dependencies = dependencies,
                 Resolved = !unresolved

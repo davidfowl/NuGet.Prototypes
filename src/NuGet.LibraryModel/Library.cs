@@ -14,12 +14,11 @@ namespace NuGet.LibraryModel
 
         public NuGetVersion Version { get; set; }
 
-        public bool IsGacOrFrameworkReference { get; set; }
+        public string Type { get; set; }
 
         public override string ToString()
         {
-            var name = IsGacOrFrameworkReference ? "framework/" + Name : Name;
-            return name + " " + Version?.ToString();
+            return Name + " " + Version?.ToString();
         }
 
         public bool Equals(Library other)
@@ -28,7 +27,7 @@ namespace NuGet.LibraryModel
             if (ReferenceEquals(this, other)) return true;
             return string.Equals(Name, other.Name) &&
                 Equals(Version, other.Version) &&
-                Equals(IsGacOrFrameworkReference, other.IsGacOrFrameworkReference);
+                Equals(Type, other.Type);
         }
 
         public override bool Equals(object obj)
@@ -45,7 +44,7 @@ namespace NuGet.LibraryModel
             {
                 return ((Name != null ? Name.GetHashCode() : 0) * 397) ^
                     (Version != null ? Version.GetHashCode() : 0) ^
-                    (IsGacOrFrameworkReference.GetHashCode());
+                    (Type != null ? Type.GetHashCode() : 0);
             }
         }
 
@@ -64,7 +63,7 @@ namespace NuGet.LibraryModel
             return new LibraryRange
             {
                 Name = library.Name,
-                IsGacOrFrameworkReference = library.IsGacOrFrameworkReference,
+                Type = library.Type,
                 VersionRange = library.Version == null ? null : new NuGetVersionRange
                 {
                     MinVersion = library.Version,

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,13 +29,14 @@ namespace NuGet.DependencyResolver
             _repository = new NuGetv3LocalRepository(packagesPath, checkPackageIdCase: false);
         }
 
+        public bool SupportsType(string libraryType)
+        {
+            return string.IsNullOrEmpty(libraryType) || 
+                   string.Equals(libraryType, LibraryTypes.Package);
+        }
+
         public LibraryDescription GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
         {
-            if (libraryRange.IsGacOrFrameworkReference)
-            {
-                return null;
-            }
-
             var package = FindCandidate(libraryRange.Name, libraryRange.VersionRange);
 
             if (package != null)
@@ -51,9 +53,9 @@ namespace NuGet.DependencyResolver
                     Identity = new Library
                     {
                         Name = package.Id,
-                        Version = package.Version
+                        Version = package.Version,
+                        Type = LibraryTypes.Package
                     },
-                    Type = LibraryDescriptionTypes.Package,
                     Path = package.ManifestPath,
                     Dependencies = GetDependencies(nuspecReader, targetFramework)
                 };
@@ -126,7 +128,7 @@ namespace NuGet.DependencyResolver
                     LibraryRange = new LibraryRange
                     {
                         Name = name,
-                        IsGacOrFrameworkReference = true
+                        Type = LibraryTypes.FrameworkOrGacAssembly
                     }
                 });
             }
