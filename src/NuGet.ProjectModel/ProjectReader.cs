@@ -101,17 +101,17 @@ namespace NuGet.ProjectModel
                 }
             }
 
-            project.Description = GetValue<string>(rawProject, "description");
+            project.Description = rawProject.GetValue<string>("description");
             project.Authors = authors == null ? new string[] { } : authors.Value<string[]>();
             project.Owners = owners == null ? new string[] { } : owners.Value<string[]>();
             project.Dependencies = new List<LibraryDependency>();
-            project.ProjectUrl = GetValue<string>(rawProject, "projectUrl");
-            project.IconUrl = GetValue<string>(rawProject, "iconUrl");
-            project.LicenseUrl = GetValue<string>(rawProject, "licenseUrl");
-            project.Copyright = GetValue<string>(rawProject, "copyright");
-            project.Language = GetValue<string>(rawProject, "language");
-            project.RequireLicenseAcceptance = GetValue<bool?>(rawProject, "requireLicenseAcceptance") ?? false;
-            project.Tags = tags == null ? new string[] { } : tags.ToObject<string[]>();
+            project.ProjectUrl = rawProject.GetValue<string>("projectUrl");
+            project.IconUrl = rawProject.GetValue<string>("iconUrl");
+            project.LicenseUrl = rawProject.GetValue<string>("licenseUrl");
+            project.Copyright = rawProject.GetValue<string>("copyright");
+            project.Language = rawProject.GetValue<string>("language");
+            project.RequireLicenseAcceptance = rawProject.GetValue<bool?>("requireLicenseAcceptance") ?? false;
+            project.Tags = tags == null ? new string[] { } : tags.ValueAsArray<string>();
 
             var scripts = rawProject["scripts"] as JObject;
             if (scripts != null)
@@ -121,11 +121,11 @@ namespace NuGet.ProjectModel
                     var value = script.Value;
                     if (value.Type == JTokenType.String)
                     {
-                        project.Scripts[script.Key] = new string[] { value.ToObject<string>() };
+                        project.Scripts[script.Key] = new string[] { value.Value<string>() };
                     }
                     else if (value.Type == JTokenType.Array)
                     {
-                        project.Scripts[script.Key] = script.Value.ToObject<string[]>();
+                        project.Scripts[script.Key] = script.Value.ValueAsArray<string>();
                     }
                     else
                     {
@@ -243,7 +243,7 @@ namespace NuGet.ProjectModel
                         {
                             Name = dependency.Key,
                             VersionRange = dependencyVersionRange,
-                            Type = LibraryTypes.FrameworkOrGacAssembly,
+                            Type = isGacOrFrameworkReference ? LibraryTypes.FrameworkOrGacAssembly : null,
                         },
                         Type = dependencyTypeValue
                     });
@@ -308,7 +308,7 @@ namespace NuGet.ProjectModel
 
         private static bool BuildTargetFrameworkNode(Project project, KeyValuePair<string, JToken> targetFramework)
         {
-            var frameworkName = NuGetFramework.Parse(targetFramework.Key);
+            var frameworkName = GetFramework(targetFramework.Key);
 
             // If it's not unsupported then keep it
             if (frameworkName == NuGetFramework.UnsupportedFramework)
@@ -348,21 +348,18 @@ namespace NuGet.ProjectModel
             return true;
         }
 
-        private static T GetValue<T>(JToken token, string name)
+        private static NuGetFramework GetFramework(string key)
         {
-            if (token == null)
-            {
-                return default(T);
-            }
+            //if (key == "aspnet50")
+            //{
+            //    return new NuGetFramework("Asp.Net", new Version(5, 0));
+            //}
+            //else if (key == "aspnetcore50")
+            //{
+            //    return new NuGetFramework("Asp.NetCore", new Version(5, 0));
+            //}
 
-            var obj = token[name];
-
-            if (obj == null)
-            {
-                return default(T);
-            }
-
-            return obj.Value<T>();
+            return NuGetFramework.Parse(key);
         }
 
         private static string GetDirectoryName(string path)

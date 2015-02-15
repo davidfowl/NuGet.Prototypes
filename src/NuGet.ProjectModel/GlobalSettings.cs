@@ -42,7 +42,7 @@ namespace NuGet.ProjectModel
             var sources = settings["sources"];
             var dependencies = settings["dependencies"] as JObject;
 
-            globalSettings.ProjectPaths = sources == null ? new string[] { } : sources.ToObject<string[]>();
+            globalSettings.ProjectPaths = sources == null ? new string[] { } : sources.ValueAsArray<string>();
             globalSettings.PackagesPath = settings.Value<string>("packages");
             globalSettings.FilePath = globalJsonPath;
 
